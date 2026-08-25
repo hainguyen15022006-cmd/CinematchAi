@@ -3,13 +3,24 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
-from cinematch.data.io import load_ml100k_ratings
+from cinematch.data.io import (
+    load_ml100k_movies,
+    load_ml100k_ratings,
+)
 from cinematch.data.profiling import (
+    build_movies_profile,
     build_ratings_profile,
 )
-from cinematch.data.schema import RATING_COLUMNS
+from cinematch.data.schema import (
+    GENRE_COLUMNS,
+    MOVIE_COLUMNS,
+    MOVIE_DTYPES,
+    RATING_COLUMNS,
+)
 from cinematch.data.validation import (
     DataValidationError,
+    validate_movies,
+    validate_rating_movie_references,
     validate_ratings,
 )
 
@@ -142,3 +153,107 @@ def test_real_ml100k_profile_if_available() -> None:
     assert profile.maximum_rating == 5.0
     assert profile.exact_duplicate_rows == 0
     assert profile.duplicate_user_movie_rows == 0
+
+
+def make_valid_movies() -> pd.DataFrame:
+    """Create a small deterministic movie catalog."""
+    data: dict[str, object] = {
+        "movie_id": [10, 20, 30],
+        "title": [
+            "Movie A (1995)",
+            "Movie B (1996)",
+            "Movie C (1997)",
+        ],
+        "release_date": [
+            "01-Jan-1995",
+            "02-Feb-1996",
+            "03-Mar-1997",
+        ],
+        "video_release_date": [
+            None,
+            None,
+            None,
+        ],
+        "imdb_url": [
+            "https://example.com/a",
+            "https://example.com/b",
+            "https://example.com/c",
+        ],
+    }
+
+    for genre in GENRE_COLUMNS:
+        data[genre] = [0, 0, 0]
+
+    data["Action"] = [1, 0, 1]
+    data["Comedy"] = [0, 1, 1]
+
+    return pd.DataFrame(
+        data,
+        columns=list(MOVIE_COLUMNS),
+    ).astype(MOVIE_DTYPES)
+
+
+def test_valid_movies_pass_validation() -> None:
+    movies = make_valid_movies()
+
+    validate_movies(movies)
+
+
+def test_invalid_genre_value_is_rejected() -> None:
+    movies = make_valid_movies()
+    movies.loc[0, "Action"] = 2
+
+    with pytest.raises(
+        DataValidationError,
+        match="genre values",
+    ):
+        validate_movies(movies)
+
+
+def test_missing_rating_movie_reference_is_rejected() -> None:
+    ratings = make_valid_ratings()
+    movies = make_valid_movies()
+
+    ratings.loc[0, "movie_id"] = 999
+
+    with pytest.raises(
+        DataValidationError,
+        match="missing from the catalog",
+    ):
+        validate_rating_movie_references(
+            ratings,
+            movies,
+        )
+
+
+def test_movie_profile_has_expected_values() -> None:
+    ratings = make_valid_ratings()
+    movies = make_valid_movies()
+
+    validate_movies(movies)
+    validate_rating_movie_references(
+        ratings,
+        movies,
+    )
+
+    profile = build_movies_profile(
+        movies,
+        ratings,
+    )
+
+    assert profile.number_of_movies == 3
+    assert profile.duplicate_movie_id_rows == 0
+    assert profile.missing_titles == 0
+
+    assert profile.genre_distribution["Action"] == 2
+    assert profile.genre_distribution["Comedy"] == 2
+
+    assert profile.movies_without_genre == 0
+    assert profile.movies_with_multiple_genres == 1
+
+    assert profile.rated_catalog_coverage == pytest.approx(
+        1.0
+    )
+
+    assert profile.missing_catalog_references == 0
+    assert profile.unreferenced_catalog_movies == 0

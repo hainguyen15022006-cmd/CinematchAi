@@ -1,0 +1,43 @@
+project:
+  name: cinematch
+  random_seed: 42
+
+data:
+  dataset_name: movielens-100k
+
+  expected:
+    ratings: 100000
+    users: 943
+    movies: 1682
+
+  raw:
+    ratings_path: data/raw/ml-100k/u.data
+    movies_path: data/raw/ml-100k/u.item
+
+  processed:
+    train_path: data/processed/train.csv
+    validation_path: data/processed/validation.csv
+    test_path: data/processed/test.csv
+    movies_path: data/processed/movies.csv
+    mappings_path: data/processed/id_mappings.json
+
+  reports:
+    split_audit_path: outputs/eda/split_audit.json
+
+  temporal_split:
+    strategy: per_user
+    order_column: timestamp
+    tie_breaker_column: movie_id
+    train_ratio: 0.8
+    validation_ratio: 0.1
+    test_ratio: 0.1
+    minimum_interactions_per_user: 10
+    allocation_method: largest_remainder
+
+evaluation:
+  positive_rating_threshold: 4.0
+
+  cold_start:
+    keep_original_rows: true
+    report_full_metrics: true
+    report_warm_start_metrics: true
