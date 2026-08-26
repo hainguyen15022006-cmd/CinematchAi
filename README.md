@@ -127,6 +127,21 @@ Chạy toàn bộ test:
 python -m pytest -v
 ```
 
+## Chạy AI baseline
+
+Sau khi chạy Data pipeline, huấn luyện Most Popular, MF và GMF trên
+cùng temporal split:
+
+```bash
+python scripts/train_baseline.py
+python scripts/evaluate_baselines.py
+```
+
+Hyperparameter nằm trong `baselines` của `configs/cinematch.yaml`.
+Checkpoint và bảng MSE/RMSE/MAE được ghi vào `outputs/baselines/` và
+không commit lên GitHub. Lý thuyết và evaluation contract được mô tả
+trong `docs/BASELINE_THEORY.md`.
+
 Kiểm tra định dạng thay đổi trước khi commit:
 
 ```bash
