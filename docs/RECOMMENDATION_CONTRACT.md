@@ -16,6 +16,11 @@ Sơn (Group Recommendation), Chúc (Backend) và Dương (Frontend).
 POST /recommend/mock
 ```
 
+Đây là endpoint chỉ phục vụ phát triển và demo tuần 1. Nó không gọi mô
+hình AI, không yêu cầu dữ liệu phòng thật và không ghi vào database.
+Kết quả được tạo cố định để Frontend và test nhận cùng một response ở
+mọi lần chạy.
+
 Request:
 
 ```json
@@ -66,5 +71,7 @@ không tự tạo metadata sai.
 - Mỗi phim phải có điểm của các thành viên trong `member_scores`.
 - Sơn chịu trách nhiệm chốt công thức, misery threshold và tie-break.
 - Tuần 1 được dùng điểm giả, nhưng request/response phải giữ đúng schema.
+- `average_without_misery` loại phim có `minimum_score < 2.5` trong dữ
+  liệu mock.
 - Bản nháp cũ dùng `top_movies` và `score` vẫn được Pydantic chấp nhận
   khi validate; output chuẩn mới dùng `recommendations` và `group_score`.
