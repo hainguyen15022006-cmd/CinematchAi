@@ -1,4 +1,13 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.db import Base
@@ -19,6 +28,10 @@ class Movie(Base):
 
 class Rating(Base):
     __tablename__ = "ratings"
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_id", name="uq_rating_user_movie"),
+        CheckConstraint("rating >= 1 AND rating <= 5", name="ck_rating_range"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

@@ -1,22 +1,27 @@
-from pydantic import BaseModel
-from typing import Optional, List
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, ConfigDict, Field
+
 from app.schemas.user import UserOut
 
+
 class RoomCreate(BaseModel):
-    name: Optional[str] = None
+    name: Optional[str] = Field(default=None, max_length=120)
+
 
 class RoomMemberOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     user_id: int
     user: Optional[UserOut] = None
     is_ready: bool
     joined_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class RoomOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     code: str
     host_id: int
@@ -24,10 +29,8 @@ class RoomOut(BaseModel):
     status: str
     constraints: Optional[str] = None
     created_at: datetime
-    members: List[RoomMemberOut] = []
+    members: List[RoomMemberOut] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
 
 class RoomConstraintsUpdate(BaseModel):
-    constraints: str # JSON string for constraints
+    constraints: str = Field(max_length=4000)  # JSON string for constraints

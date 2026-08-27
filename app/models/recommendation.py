@@ -1,4 +1,12 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime, String
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.db import Base
@@ -22,6 +30,10 @@ class RecommendationRun(Base):
 
 class RunItem(Base):
     __tablename__ = "run_items"
+    __table_args__ = (
+        UniqueConstraint("run_id", "movie_id", name="uq_run_item_movie"),
+        UniqueConstraint("run_id", "rank", name="uq_run_item_rank"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     run_id = Column(Integer, ForeignKey("recommendation_runs.id"), nullable=False)
@@ -35,6 +47,9 @@ class RunItem(Base):
 
 class Vote(Base):
     __tablename__ = "votes"
+    __table_args__ = (
+        UniqueConstraint("run_id", "user_id", name="uq_vote_run_user"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     run_id = Column(Integer, ForeignKey("recommendation_runs.id"), nullable=False)

@@ -19,16 +19,26 @@ def create_rating(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    movie = db.query(Movie).filter(Movie.id == rating_in.movie_id).first()
+    movie = db.query(Movie).filter(
+        Movie.movielens_id == rating_in.movie_id
+    ).first()
     if movie is None:
         raise HTTPException(status_code=404, detail="Movie not found")
 
-    new_rating = Rating(
-        user_id=current_user.id,
-        movie_id=rating_in.movie_id,
-        rating=rating_in.rating,
-    )
-    db.add(new_rating)
+    saved_rating = db.query(Rating).filter(
+        Rating.user_id == current_user.id,
+        Rating.movie_id == movie.id,
+    ).first()
+    if saved_rating is None:
+        saved_rating = Rating(
+            user_id=current_user.id,
+            movie=movie,
+            rating=rating_in.rating,
+        )
+        db.add(saved_rating)
+    else:
+        saved_rating.rating = rating_in.rating
+
     db.commit()
-    db.refresh(new_rating)
-    return new_rating
+    db.refresh(saved_rating)
+    return saved_rating

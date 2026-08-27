@@ -1,30 +1,57 @@
-from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.models.recommendation import RecommendationRun, Vote, RunItem
+from sqlalchemy.orm import Session
 
-def tally_votes_and_get_winner(db: Session, run_id: int):
-    run = db.query(RecommendationRun).filter(RecommendationRun.id == run_id).first()
+from app.models.recommendation import RecommendationRun, RunItem, Vote
+
+
+def tally_votes_and_get_winner(
+    db: Session,
+    run_id: int,
+) -> RecommendationRun | None:
+    run = (
+        db.query(RecommendationRun)
+        .filter(RecommendationRun.id == run_id)
+        .first()
+    )
     if not run:
         return None
-    
-    # Calculate sum of votes per movie
-    vote_sums = db.query(
-        Vote.movie_id, func.sum(Vote.vote_value).label('total_score')
-    ).filter(Vote.run_id == run_id).group_by(Vote.movie_id).all()
-    
-    if not vote_sums:
-        # No votes, pick rank 1
-        top_item = db.query(RunItem).filter(RunItem.run_id == run_id).order_by(RunItem.rank).first()
-        if top_item:
-            run.winner_movie_id = top_item.movie_id
-    else:
-        # Find max score
-        best_movie_id = max(vote_sums, key=lambda x: x.total_score).movie_id
-        run.winner_movie_id = best_movie_id
 
+    items = (
+        db.query(RunItem)
+        .filter(RunItem.run_id == run_id)
+        .order_by(RunItem.rank)
+        .all()
+    )
+    if not items:
+        return run
+
+    # Calculate sum of votes per movie.
+    vote_sums = (
+        db.query(
+            Vote.movie_id,
+            func.sum(Vote.vote_value).label("total_score"),
+        )
+        .filter(Vote.run_id == run_id)
+        .group_by(Vote.movie_id)
+        .all()
+    )
+
+    if not vote_sums:
+        winner_item = items[0]
+    else:
+        totals = {row.movie_id: float(row.total_score) for row in vote_sums}
+        # Higher vote total wins; equal totals are broken by original rank.
+        winner_item = max(
+            items,
+            key=lambda item: (totals.get(item.movie_id, 0.0), -item.rank),
+        )
+
+    run.winner_movie_id = winner_item.movie_id
     run.status = "FINISHED"
-    run.group_score = 4.2 # mock metrics
-    run.disagreement = 0.35 # mock metrics
+    run.group_score = winner_item.ai_score
+    # The database mock has no per-member predictions to calculate disagreement.
+    run.disagreement = None
+    run.room.status = "FINISHED"
     db.commit()
     db.refresh(run)
     return run

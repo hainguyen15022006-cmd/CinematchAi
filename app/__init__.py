@@ -1,0 +1,1 @@
+"""CineMatch FastAPI backend package."""

@@ -2,7 +2,7 @@ from enum import Enum
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import AliasChoices, BaseModel, Field
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from app.schemas.movie import MovieOut
 from app.schemas.user import UserOut
@@ -33,56 +33,61 @@ class MemberScore(BaseModel):
 
 
 class RunItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     run_id: int
-    movie_id: int
+    movie_id: int = Field(
+        validation_alias=AliasChoices(
+            AliasPath("movie", "movielens_id"),
+            "movie_id",
+        )
+    )
     rank: int
     ai_score: Optional[float] = None
     movie: Optional[MovieOut] = None
 
-    class Config:
-        from_attributes = True
-
-
 class RecommendationRunOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     room_id: int
     status: str
     created_at: datetime
     items: List[RunItemOut] = Field(default_factory=list)
 
-    class Config:
-        from_attributes = True
-
-
 class VoteCreate(BaseModel):
-    movie_id: int
-    vote_value: float  # 1 for like, -1 for dislike
+    movie_id: int = Field(
+        gt=0,
+        description="ID gốc MovieLens",
+    )
+    vote_value: float = Field(default=1, ge=-1, le=1)
 
 
 class VoteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     run_id: int
     user_id: int
-    movie_id: int
+    movie_id: int = Field(
+        validation_alias=AliasChoices(
+            AliasPath("movie", "movielens_id"),
+            "movie_id",
+        )
+    )
     vote_value: float
     created_at: datetime
     user: Optional[UserOut] = None
 
-    class Config:
-        from_attributes = True
-
-
 class RunResultOut(BaseModel):
-    run_id: int
+    model_config = ConfigDict(from_attributes=True)
+
+    run_id: int = Field(validation_alias=AliasChoices("run_id", "id"))
     winner_movie: Optional[MovieOut] = None
     group_score: Optional[float] = None
     disagreement: Optional[float] = None
     votes: List[VoteOut] = Field(default_factory=list)
-
-    class Config:
-        from_attributes = True
-
 
 class RecommendedMovie(BaseModel):
     """Một phim trong Top-K cùng dữ liệu fairness và giải thích."""
