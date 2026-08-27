@@ -3,8 +3,16 @@ from .user import UserOut, UserProfileOut, UserPreferenceUpdate
 from .movie import MovieOut, RatingCreate, RatingOut
 from .room import RoomCreate, RoomOut, RoomMemberOut, RoomConstraintsUpdate
 from .run import (
-    RunItemOut, RecommendationRunOut, VoteCreate, VoteOut, 
-    RunResultOut, GroupRecommendationOut, RecommendedMovie
+    AggregationStrategy,
+    GroupRecommendationOut,
+    MemberScore,
+    RecommendationRequest,
+    RecommendationRunOut,
+    RecommendedMovie,
+    RunItemOut,
+    RunResultOut,
+    VoteCreate,
+    VoteOut,
 )
 
 __all__ = [
@@ -12,6 +20,14 @@ __all__ = [
     "UserOut", "UserProfileOut", "UserPreferenceUpdate",
     "MovieOut", "RatingCreate", "RatingOut",
     "RoomCreate", "RoomOut", "RoomMemberOut", "RoomConstraintsUpdate",
-    "RunItemOut", "RecommendationRunOut", "VoteCreate", "VoteOut", 
-    "RunResultOut", "GroupRecommendationOut", "RecommendedMovie"
+    "AggregationStrategy",
+    "RecommendationRequest",
+    "MemberScore",
+    "RunItemOut",
+    "RecommendationRunOut",
+    "VoteCreate",
+    "VoteOut",
+    "RunResultOut",
+    "GroupRecommendationOut",
+    "RecommendedMovie",
 ]
