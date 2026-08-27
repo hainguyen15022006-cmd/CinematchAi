@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CineMatch Backend"
     VERSION: str = "0.1.0"
-    
+
     # Security
     SECRET_KEY: str = "cinematch-demo-secret-change-me"
     ALGORITHM: str = "HS256"
