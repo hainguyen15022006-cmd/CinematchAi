@@ -154,6 +154,9 @@ endpoint, luồng room/vote và quy ước ID nằm trong
 `docs/BACKEND_API.md`; schema Group Recommendation nằm trong
 `docs/RECOMMENDATION_CONTRACT.md`.
 
+Cách ghép nhánh và kết quả kiểm thử chung Frontend–Backend tuần 1 được ghi
+trong `docs/FE_BE_INTEGRATION_WEEK1.md`.
+
 ## Chạy AI baseline
 
 Sau khi chạy Data pipeline, huấn luyện Most Popular, MF và GMF trên
