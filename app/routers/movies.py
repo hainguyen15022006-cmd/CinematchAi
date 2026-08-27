@@ -1,0 +1,34 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List
+from app.core.db import get_db
+from app.core.security import get_current_user
+from app.models.user import User
+from app.models.movie import Movie, Rating
+from app.schemas.movie import MovieOut, RatingCreate, RatingOut
+
+router = APIRouter(tags=["Movies & Ratings"])
+
+@router.get("/movies", response_model=List[MovieOut])
+def list_movies(limit: int = 50, skip: int = 0, db: Session = Depends(get_db)):
+    return db.query(Movie).offset(skip).limit(limit).all()
+
+@router.post("/ratings", response_model=RatingOut, status_code=201)
+def create_rating(
+    rating_in: RatingCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    movie = db.query(Movie).filter(Movie.id == rating_in.movie_id).first()
+    if movie is None:
+        raise HTTPException(status_code=404, detail="Movie not found")
+
+    new_rating = Rating(
+        user_id=current_user.id,
+        movie_id=rating_in.movie_id,
+        rating=rating_in.rating,
+    )
+    db.add(new_rating)
+    db.commit()
+    db.refresh(new_rating)
+    return new_rating

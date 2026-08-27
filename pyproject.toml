@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "cinematch"
 version = "0.1.0"
 description = "Group movie recommendation system"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.12"
 dependencies = [
     "numpy>=1.26,<3",
     "pandas>=2.2,<3",
