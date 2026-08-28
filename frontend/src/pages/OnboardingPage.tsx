@@ -9,6 +9,28 @@ import type { Movie } from '../types'
 
 const TARGET_RATINGS = 5
 
+const GENRE_THEMES: Record<string, string> = {
+  Action: 'action',
+  Adventure: 'adventure',
+  Animation: 'animation',
+  Children: 'children',
+  Comedy: 'comedy',
+  Crime: 'crime',
+  Drama: 'drama',
+  Horror: 'horror',
+  Romance: 'romance',
+  'Sci-Fi': 'sci-fi',
+  Thriller: 'thriller',
+}
+
+function getMovieVisual(genres?: string | null) {
+  const primaryGenre = genres?.split('|').find(Boolean) ?? 'Khám phá'
+  return {
+    primaryGenre,
+    theme: GENRE_THEMES[primaryGenre] ?? 'default',
+  }
+}
+
 export function OnboardingPage() {
   const [movies, setMovies] = useState<Movie[]>([])
   const [ratings, setRatings] = useState<Record<number, number>>({})
@@ -97,9 +119,14 @@ export function OnboardingPage() {
             {filtered.map((movie) => {
               const rating = ratings[movie.movielens_id]
               const isSaving = saving === movie.movielens_id
+              const visual = getMovieVisual(movie.genres)
               return (
                 <article className={`movie-card ${rating ? 'rated' : ''} ${isSaving ? 'saving' : ''}`} key={movie.movielens_id}>
-                  <div className="poster-placeholder" aria-hidden="true"><span>{movie.release_year ?? '—'}</span></div>
+                  <div className="poster-placeholder" data-genre-theme={visual.theme} aria-hidden="true">
+                    <span className="genre-kicker">{visual.primaryGenre}</span>
+                    <span className="movie-monogram">{movie.title.trim().charAt(0).toUpperCase()}</span>
+                    <span className="release-year">{movie.release_year ?? '—'}</span>
+                  </div>
                   <div className="movie-content">
                     <span className="movie-id">MovieLens #{movie.movielens_id}</span>
                     <h2>{movie.title}</h2>

@@ -12,7 +12,17 @@
 }
 
 .onboarding-heading {
+  position: relative;
   align-items: stretch;
+  padding: 28px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 82% 15%, rgba(45, 212, 191, 0.11), transparent 29%),
+    radial-gradient(circle at 12% 110%, rgba(249, 115, 22, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(18, 22, 33, 0.94), rgba(10, 12, 19, 0.94));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.24);
 }
 
 .onboarding-intro {
@@ -24,12 +34,16 @@
   font-size: 16px;
 }
 
+.onboarding-intro .eyebrow {
+  color: #fbbf24;
+}
+
 .onboarding-heading .progress-card {
   width: min(100%, 330px);
   align-content: start;
   gap: 8px;
   padding: 22px;
-  background: linear-gradient(145deg, rgba(23, 28, 41, 0.98), rgba(13, 16, 25, 0.98));
+  background: linear-gradient(145deg, rgba(19, 26, 38, 0.96), rgba(10, 14, 22, 0.96));
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -56,21 +70,25 @@
 }
 
 .progress-card.complete .progress-message::before {
-  content: "✓";
+  content: "";
   display: grid;
   place-items: center;
   width: 18px;
   height: 18px;
   margin-right: 7px;
   border-radius: 50%;
-  background: rgba(74, 222, 128, 0.14);
-  color: var(--success);
-  font-weight: 900;
+  border: 5px solid rgba(45, 212, 191, 0.18);
+  border-top-color: #2dd4bf;
+  background: transparent;
 }
 
 .onboarding-heading .progress-track {
   height: 8px;
   margin-top: 4px;
+}
+
+.onboarding-heading .progress-track i {
+  background: linear-gradient(90deg, #f97316 0%, #fbbf24 42%, #8b5cf6 100%);
 }
 
 .progress-action {
@@ -83,6 +101,14 @@
   min-height: 48px;
   flex-wrap: wrap;
   margin: 22px 0;
+}
+
+.onboarding-toolbar::before {
+  content: "DANH SÁCH PHIM";
+  color: #f59e0b;
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.14em;
 }
 
 .search-field {
@@ -113,6 +139,11 @@
 
 .movie-count {
   margin-left: auto;
+  padding: 6px 10px;
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.07);
+  color: #99f6e4;
   white-space: nowrap;
 }
 
@@ -123,19 +154,23 @@
 }
 
 .movie-card {
+  --genre-accent: #8b5cf6;
+  --genre-deep: #1e1b4b;
   position: relative;
   isolation: isolate;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
+  background: linear-gradient(180deg, #151a25 0%, #10131c 100%);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.2);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .movie-card:hover {
+  border-color: color-mix(in srgb, var(--genre-accent) 46%, #303747);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
 }
 
 .movie-card.rated {
-  border-color: rgba(139, 92, 246, 0.58);
-  box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.1), 0 18px 44px rgba(0, 0, 0, 0.2);
+  border-color: color-mix(in srgb, var(--genre-accent) 60%, #303747);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--genre-accent) 16%, transparent), 0 18px 44px rgba(0, 0, 0, 0.24);
 }
 
 .movie-card.saving {
@@ -148,9 +183,21 @@
   aspect-ratio: 16 / 7;
   overflow: hidden;
   background:
-    radial-gradient(circle at 70% 20%, rgba(139, 92, 246, 0.42), transparent 32%),
-    linear-gradient(135deg, #272d40 0%, #121621 54%, #0b0e16 100%);
+    radial-gradient(circle at 72% 22%, color-mix(in srgb, var(--genre-accent) 72%, transparent), transparent 34%),
+    linear-gradient(135deg, var(--genre-deep) 0%, #121621 62%, #090b12 100%);
 }
+
+.movie-card:has([data-genre-theme="action"]) { --genre-accent: #fb6a3d; --genre-deep: #581c1c; }
+.movie-card:has([data-genre-theme="adventure"]) { --genre-accent: #34d399; --genre-deep: #064e3b; }
+.movie-card:has([data-genre-theme="animation"]) { --genre-accent: #2dd4bf; --genre-deep: #134e4a; }
+.movie-card:has([data-genre-theme="children"]) { --genre-accent: #38bdf8; --genre-deep: #0c4a6e; }
+.movie-card:has([data-genre-theme="comedy"]) { --genre-accent: #fbbf24; --genre-deep: #713f12; }
+.movie-card:has([data-genre-theme="crime"]) { --genre-accent: #a3e635; --genre-deep: #365314; }
+.movie-card:has([data-genre-theme="drama"]) { --genre-accent: #60a5fa; --genre-deep: #1e3a8a; }
+.movie-card:has([data-genre-theme="horror"]) { --genre-accent: #f43f5e; --genre-deep: #4c0519; }
+.movie-card:has([data-genre-theme="romance"]) { --genre-accent: #f472b6; --genre-deep: #831843; }
+.movie-card:has([data-genre-theme="sci-fi"]) { --genre-accent: #22d3ee; --genre-deep: #164e63; }
+.movie-card:has([data-genre-theme="thriller"]) { --genre-accent: #a78bfa; --genre-deep: #3b0764; }
 
 .movie-card .poster-placeholder::before,
 .movie-card .poster-placeholder::after {
@@ -174,7 +221,8 @@
   bottom: -54px;
 }
 
-.movie-card .poster-placeholder span {
+.movie-card .genre-kicker,
+.movie-card .release-year {
   position: relative;
   z-index: 1;
   padding: 7px 11px;
@@ -182,9 +230,36 @@
   border-radius: 999px;
   background: rgba(9, 11, 18, 0.68);
   backdrop-filter: blur(8px);
-  color: #ddd6fe;
+  color: #f8fafc;
   font-size: 13px;
   letter-spacing: 0.08em;
+}
+
+.movie-card .genre-kicker {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  border-color: color-mix(in srgb, var(--genre-accent) 48%, transparent);
+  background: color-mix(in srgb, var(--genre-deep) 72%, transparent);
+  color: color-mix(in srgb, var(--genre-accent) 74%, white);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.movie-card .release-year {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+}
+
+.movie-monogram {
+  position: relative;
+  z-index: 0;
+  color: rgba(255, 255, 255, 0.19);
+  font-size: clamp(58px, 6vw, 84px);
+  font-weight: 900;
+  line-height: 1;
+  text-shadow: 0 18px 50px color-mix(in srgb, var(--genre-accent) 48%, transparent);
 }
 
 .movie-card .movie-content {
@@ -262,14 +337,19 @@
 }
 
 .saved-label {
-  color: #bbf7d0;
+  color: #99f6e4;
   font-weight: 700;
 }
 
 .saved-label::before {
-  content: "✓";
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
   margin-right: 5px;
-  color: var(--success);
+  border-radius: 50%;
+  background: #2dd4bf;
+  box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
 }
 
 .saving-label {
@@ -323,6 +403,7 @@
 @media (max-width: 850px) {
   .onboarding-heading {
     gap: 20px;
+    padding: 24px;
   }
 
   .onboarding-heading .progress-card {
@@ -335,6 +416,11 @@
 }
 
 @media (max-width: 520px) {
+  .onboarding-heading {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
   .onboarding-intro .muted {
     font-size: 15px;
   }
@@ -346,6 +432,10 @@
   }
 
   .search-field {
+    grid-column: 1 / -1;
+  }
+
+  .onboarding-toolbar::before {
     grid-column: 1 / -1;
   }
 
