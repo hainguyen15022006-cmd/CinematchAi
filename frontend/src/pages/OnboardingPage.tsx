@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Alert } from '../components/Alert'
 import { LoadingState } from '../components/LoadingState'
 import { StarRating } from '../components/StarRating'
 import { api, ApiError } from '../services/api'
+import '../styles/onboarding.css'
 import type { Movie } from '../types'
 
 const TARGET_RATINGS = 5
@@ -30,6 +32,8 @@ export function OnboardingPage() {
 
   const count = Object.keys(ratings).length
   const progress = Math.min(100, Math.round((count / TARGET_RATINGS) * 100))
+  const remaining = Math.max(0, TARGET_RATINGS - count)
+  const isComplete = count >= TARGET_RATINGS
 
   async function rate(movie: Movie, value: number) {
     setError('')
@@ -48,27 +52,78 @@ export function OnboardingPage() {
 
   return (
     <main className="page wide-page">
-      <section className="page-heading">
-        <div><p className="eyebrow">ONBOARDING</p><h1>Chấm những phim bạn đã xem</h1><p className="muted">Rating được gửi trực tiếp tới <code>POST /ratings</code> bằng MovieLens ID.</p></div>
-        <div className="progress-card"><strong>{count}/{TARGET_RATINGS}</strong><span>phim đã chấm trong phiên này</span><div className="progress-track"><i style={{ width: `${progress}%` }} /></div></div>
+      <section className="page-heading onboarding-heading">
+        <div className="onboarding-intro">
+          <p className="eyebrow">ONBOARDING</p>
+          <h1>Chấm những phim bạn đã xem</h1>
+          <p className="muted">
+            Chọn ít nhất {TARGET_RATINGS} phim để CineMatch hiểu sở thích của bạn.
+            Bạn vẫn có thể chấm thêm để kết quả chính xác hơn.
+          </p>
+        </div>
+        <aside className={`progress-card ${isComplete ? 'complete' : ''}`} aria-label="Tiến độ chấm phim">
+          <strong>Đã chấm {count} phim</strong>
+          <span className="progress-message">
+            {isComplete
+              ? `Đã đạt yêu cầu tối thiểu ${TARGET_RATINGS} phim`
+              : `Cần chấm thêm ${remaining} phim`}
+          </span>
+          <div
+            className="progress-track"
+            role="progressbar"
+            aria-label="Số phim đã chấm"
+            aria-valuemin={0}
+            aria-valuemax={TARGET_RATINGS}
+            aria-valuenow={Math.min(count, TARGET_RATINGS)}
+          >
+            <i style={{ width: `${progress}%` }} />
+          </div>
+          {isComplete && <Link className="button primary progress-action" to="/room">Tiếp tục vào phòng</Link>}
+        </aside>
       </section>
-      {error && <Alert type="error">{error}</Alert>}
-      {success && <Alert type="success">{success}</Alert>}
-      <div className="toolbar"><input className="search-input" placeholder="Tìm phim..." value={query} onChange={(e) => setQuery(e.target.value)} /><span>{filtered.length} phim</span></div>
+      <div aria-live="assertive">{error && <Alert type="error">{error}</Alert>}</div>
+      <div aria-live="polite">{success && <Alert type="success">{success}</Alert>}</div>
+      <div className="toolbar onboarding-toolbar">
+        <label className="search-field">
+          <span className="sr-only">Tìm phim theo tên</span>
+          <input className="search-input" type="search" placeholder="Tìm theo tên phim..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        </label>
+        {query && <button className="clear-search" type="button" onClick={() => setQuery('')}>Xóa tìm kiếm</button>}
+        <span className="movie-count" aria-live="polite">{filtered.length} phim</span>
+      </div>
       {loading ? <LoadingState label="Đang lấy danh sách phim..." /> : (
-        <section className="movie-grid">
-          {filtered.map((movie) => (
-            <article className="movie-card" key={movie.movielens_id}>
-              <div className="poster-placeholder"><span>{movie.release_year ?? '—'}</span></div>
-              <div className="movie-content">
-                <span className="movie-id">MovieLens #{movie.movielens_id}</span>
-                <h2>{movie.title}</h2>
-                <p>{movie.genres?.replaceAll('|', ' · ') || 'Chưa có thể loại'}</p>
-                <StarRating value={ratings[movie.movielens_id]} disabled={saving === movie.movielens_id} onChange={(value) => rate(movie, value)} />
-              </div>
-            </article>
-          ))}
-        </section>
+        filtered.length > 0 ? (
+          <section className="movie-grid" aria-label="Danh sách phim để chấm">
+            {filtered.map((movie) => {
+              const rating = ratings[movie.movielens_id]
+              const isSaving = saving === movie.movielens_id
+              return (
+                <article className={`movie-card ${rating ? 'rated' : ''} ${isSaving ? 'saving' : ''}`} key={movie.movielens_id}>
+                  <div className="poster-placeholder" aria-hidden="true"><span>{movie.release_year ?? '—'}</span></div>
+                  <div className="movie-content">
+                    <span className="movie-id">MovieLens #{movie.movielens_id}</span>
+                    <h2>{movie.title}</h2>
+                    <p>{movie.genres?.replaceAll('|', ' · ') || 'Chưa có thể loại'}</p>
+                    <StarRating value={rating} label={`Đánh giá phim ${movie.title}`} disabled={isSaving} onChange={(value) => rate(movie, value)} />
+                    <div className="rating-status" aria-live="polite">
+                      {isSaving
+                        ? <span className="saving-label"><i aria-hidden="true" />Đang lưu...</span>
+                        : rating
+                          ? <span className="saved-label">Đã lưu {rating}/5 sao</span>
+                          : <span>Chưa chấm</span>}
+                    </div>
+                  </div>
+                </article>
+              )
+            })}
+          </section>
+        ) : (
+          <section className="movie-empty-state" role="status">
+            <h2>Không tìm thấy phim phù hợp</h2>
+            <p>Không có kết quả cho “{query}”. Hãy thử một từ khóa khác.</p>
+            <button className="button secondary" type="button" onClick={() => setQuery('')}>Xóa tìm kiếm</button>
+          </section>
+        )
       )}
     </main>
   )
