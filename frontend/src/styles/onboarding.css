@@ -1,4 +1,12 @@
 /* CineMatch onboarding: scoped visual and interaction improvements. */
+.onboarding-page {
+  position: relative;
+  background:
+    radial-gradient(circle at 5% 20%, rgba(249, 115, 22, 0.07), transparent 28%),
+    radial-gradient(circle at 95% 42%, rgba(45, 212, 191, 0.07), transparent 30%),
+    linear-gradient(180deg, #080a0f 0%, #090c12 100%);
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -179,8 +187,8 @@
 
 .movie-card .poster-placeholder {
   position: relative;
-  height: auto;
-  aspect-ratio: 16 / 7;
+  width: 100%;
+  height: 150px;
   overflow: hidden;
   background:
     radial-gradient(circle at 72% 22%, color-mix(in srgb, var(--genre-accent) 72%, transparent), transparent 34%),

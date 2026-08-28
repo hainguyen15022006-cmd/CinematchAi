@@ -73,7 +73,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <main className="page wide-page">
+    <main className="page wide-page onboarding-page">
       <section className="page-heading onboarding-heading">
         <div className="onboarding-intro">
           <p className="eyebrow">ONBOARDING</p>
