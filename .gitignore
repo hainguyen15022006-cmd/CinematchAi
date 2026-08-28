@@ -58,3 +58,5 @@ Thumbs.db
 !.vscode/settings.json
 .idea/
 *.swp
+# Local AI agent skills
+.agents/
