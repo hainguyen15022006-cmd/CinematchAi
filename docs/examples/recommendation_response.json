@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0",
+  "room_id": 1,
+  "strategy": "average",
+  "recommendations": [
+    {
+      "movie_id": 50,
+      "rank": 1,
+      "title": "Star Wars (1977)",
+      "genres": [
+        "Action",
+        "Adventure",
+        "Sci-Fi"
+      ],
+      "poster_url": null,
+      "runtime_minutes": null,
+      "group_score": 4.6,
+      "minimum_score": 3.8,
+      "disagreement": 0.42,
+      "member_scores": [
+        {
+          "user_id": 1,
+          "display_name": "Thanh vien 1",
+          "predicted_score": 4.8
+        },
+        {
+          "user_id": 2,
+          "display_name": "Thanh vien 2",
+          "predicted_score": 4.4
+        }
+      ],
+      "misery_warning": false,
+      "explanations": [
+        "Phu hop the loai chung: Action, Sci-Fi",
+        "Khong co thanh vien bi diem duoi nguong misery"
+      ]
+    }
+  ]
+}

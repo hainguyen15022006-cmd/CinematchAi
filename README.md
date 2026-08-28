@@ -127,6 +127,51 @@ Chạy toàn bộ test:
 python -m pytest -v
 ```
 
+## Chạy Backend API
+
+Sau khi tạo môi trường và Data pipeline, tạo file cấu hình local rồi seed
+movie catalog:
+
+```bash
+cp .env.example .env
+python scripts/seed_movies.py
+uvicorn app.main:app --reload
+```
+
+Kiểm tra API tại:
+
+- Health check: `http://127.0.0.1:8000/health`
+- Swagger UI: `http://127.0.0.1:8000/docs`
+- OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
+
+Backend dùng FastAPI, SQLAlchemy và SQLite cho MVP. Authentication dùng
+JWT; mật khẩu được hash bằng Argon2. `movie_id` trong API luôn là ID gốc
+MovieLens, không phải khóa nội bộ `movies.id`.
+
+Frontend có thể tích hợp sớm bằng `POST /recommend/mock`. Endpoint này trả
+Top-K xác định theo contract v1 mà chưa cần model hoặc database. Chi tiết
+endpoint, luồng room/vote và quy ước ID nằm trong
+`docs/BACKEND_API.md`; schema Group Recommendation nằm trong
+`docs/RECOMMENDATION_CONTRACT.md`.
+
+Cách ghép nhánh và kết quả kiểm thử chung Frontend–Backend tuần 1 được ghi
+trong `docs/FE_BE_INTEGRATION_WEEK1.md`.
+
+## Chạy AI baseline
+
+Sau khi chạy Data pipeline, huấn luyện Most Popular, MF và GMF trên
+cùng temporal split:
+
+```bash
+python scripts/train_baseline.py
+python scripts/evaluate_baselines.py
+```
+
+Hyperparameter nằm trong `baselines` của `configs/cinematch.yaml`.
+Checkpoint và bảng MSE/RMSE/MAE được ghi vào `outputs/baselines/` và
+không commit lên GitHub. Lý thuyết và evaluation contract được mô tả
+trong `docs/BASELINE_THEORY.md`.
+
 Kiểm tra định dạng thay đổi trước khi commit:
 
 ```bash

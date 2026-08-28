@@ -41,3 +41,13 @@ evaluation:
     keep_original_rows: true
     report_full_metrics: true
     report_warm_start_metrics: true
+
+baselines:
+  output_dir: outputs/baselines
+  embedding_dim: 32
+  batch_size: 1024
+  epochs: 20
+  learning_rate: 0.001
+  weight_decay: 0.00001
+  patience: 3
+  popularity_prior_count: 20.0
