@@ -76,11 +76,14 @@ export function OnboardingPage() {
     <main className="page wide-page onboarding-page">
       <section className="page-heading onboarding-heading">
         <div className="onboarding-intro">
-          <p className="eyebrow">ONBOARDING</p>
-          <h1>Chấm những phim bạn đã xem</h1>
+          <div className="onboarding-meta">
+            <p className="eyebrow">HIỂU GU CỦA BẠN</p>
+            <span className="step-chip">Bước 1/2 · Hồ sơ sở thích</span>
+          </div>
+          <h1>Chấm phim cho <span>mọi khoảnh khắc</span></h1>
           <p className="muted">
-            Chọn ít nhất {TARGET_RATINGS} phim để CineMatch hiểu sở thích của bạn.
-            Bạn vẫn có thể chấm thêm để kết quả chính xác hơn.
+            Chọn từ 5–10 phim. Các lựa chọn này tạo hồ sơ ban đầu
+            và bạn vẫn có thể thay đổi sau.
           </p>
         </div>
         <aside className={`progress-card ${isComplete ? 'complete' : ''}`} aria-label="Tiến độ chấm phim">
