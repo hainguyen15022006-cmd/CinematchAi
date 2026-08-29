@@ -78,7 +78,7 @@ không tự tạo metadata sai.
 - `2.0` là misery threshold dùng chung. Backend phải sử dụng
   `DEFAULT_MISERY_THRESHOLD` từ `cinematch.recommendation.group`,
   không khai báo một giá trị riêng.
-  
+
 ## Model-to-Group Contract
 
 ### Model input

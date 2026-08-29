@@ -1,11 +1,14 @@
 """HTTP tests cho POST /recommend/mock."""
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.routers.recommendations import router
+from app.services.mock_recommendation_service import MOCK_CANDIDATES
 from cinematch.recommendation.group import (
     DEFAULT_MISERY_THRESHOLD,
+    rank_group_candidates,
 )
 
 
@@ -36,6 +39,42 @@ def test_mock_recommendation_is_deterministic() -> None:
 
     assert first.status_code == 200
     assert first.json() == second.json()
+
+
+@pytest.mark.parametrize(
+    "strategy",
+    ["average", "least_misery", "average_without_misery"],
+)
+def test_mock_recommendation_uses_core_group_ranking(
+    strategy: str,
+) -> None:
+    """Mock API must not drift from the shared aggregation logic."""
+    response = client.post(
+        "/recommend/mock",
+        json={"room_id": 1, "strategy": strategy, "top_k": 20},
+    )
+
+    assert response.status_code == 200
+    actual_movie_ids = [
+        item["movie_id"]
+        for item in response.json()["recommendations"]
+    ]
+
+    candidate_scores = {
+        movie_id: scores
+        for movie_id, _title, _genres, scores in MOCK_CANDIDATES
+    }
+    expected_movie_ids = [
+        item.movie_id
+        for item in rank_group_candidates(
+            candidate_scores=candidate_scores,
+            strategy=strategy,
+            misery_threshold=DEFAULT_MISERY_THRESHOLD,
+            top_k=20,
+        )
+    ]
+
+    assert actual_movie_ids == expected_movie_ids
 
 
 def test_average_without_misery_removes_low_scoring_movies() -> None:
