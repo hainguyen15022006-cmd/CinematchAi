@@ -172,6 +172,25 @@ Checkpoint và bảng MSE/RMSE/MAE được ghi vào `outputs/baselines/` và
 không commit lên GitHub. Lý thuyết và evaluation contract được mô tả
 trong `docs/BASELINE_THEORY.md`.
 
+## Chạy NCF, Hybrid NCF và text demo
+
+Các smoke training tuần 1 dùng dữ liệu nhỏ để xác nhận forward và
+backpropagation. Chúng chưa phải kết quả đánh giá cuối trên MovieLens.
+
+```bash
+python scripts/train_ncf.py
+python scripts/train_hybrid_ncf.py
+python experiments/text_encoder_demo.py
+python -m pytest \
+  tests/test_ncf.py \
+  tests/test_hybrid_ncf.py \
+  tests/test_text_encoder.py -v
+```
+
+- Lý thuyết NCF: `docs/NCF_THEORY.md`.
+- Thiết kế và feature dimensions: `docs/HYBRID_DESIGN.md`.
+- Text artifact schema: `docs/TEXT_ARTIFACT_CONTRACT.md`.
+
 Kiểm tra định dạng thay đổi trước khi commit:
 
 ```bash
