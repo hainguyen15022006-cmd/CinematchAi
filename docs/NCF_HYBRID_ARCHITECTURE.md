@@ -16,7 +16,7 @@ At test time dropout is off, and the model ends up not just memorizing the train
 
 ### Q3. Where do metadata and text get merged into Hybrid?
 
-Right at the concatenation step, before the MLP. Normal NCF only concats `[user_emb, item_emb]`. Hybrid adds a side feature vector on top: `[user_emb, item_emb, side_feature]` — genres for now, text encoder output later.
+Right at the concatenation step, before the MLP. Normal NCF only concats `[user_emb, item_emb]`. Hybrid adds a side feature vector on top: `[user_emb, item_emb, side_feature]`. The week-one contract now includes genres, normalized year, user genre history and the Vietnamese text vector; see `docs/HYBRID_DESIGN.md`.
 
 Because it's merged at the input, the first MLP layer's input size has to match the new total length, which is the easiest place to get a shape mismatch if you forget to update it.
 
@@ -37,6 +37,6 @@ Goal this week was just getting a working NCF baseline and understanding it well
 **Done:**
 - NCF built with embeddings, MLP, forward pass — runs fine on a batch, no shape issues.
 - Hybrid NCF built on top of it, concatenating a side feature vector into the input.
-- Tests pass (2 for NCF, 1 for Hybrid).
-- Ran a few epochs just to sanity-check training works: NCF loss went 8.11 → 6.17, Hybrid went 1.44 → 1.22. Hybrid starts lower/drops faster since it already has extra signal from the side features.
-
+- Tests cover NCF shape, finite values, gradients, rating range and dataset dtypes; Hybrid tests cover shape, rating range and side-feature validation.
+- The deterministic Vietnamese text encoder demo and artifact round-trip are covered by `tests/test_text_encoder.py`.
+- Both deterministic smoke scripts run for three epochs with finite loss. These synthetic losses only validate the training path and must not be used to claim that Hybrid is better than NCF.
