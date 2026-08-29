@@ -71,7 +71,20 @@ không tự tạo metadata sai.
 - Mỗi phim phải có điểm của các thành viên trong `member_scores`.
 - Sơn chịu trách nhiệm chốt công thức, misery threshold và tie-break.
 - Tuần 1 được dùng điểm giả, nhưng request/response phải giữ đúng schema.
-- `average_without_misery` loại phim có `minimum_score < 2.5` trong dữ
+- `average_without_misery` loại phim có `minimum_score < 2.0` trong dữ
   liệu mock.
 - Bản nháp cũ dùng `top_movies` và `score` vẫn được Pydantic chấp nhận
   khi validate; output chuẩn mới dùng `recommendations` và `group_score`.
+- `2.0` là misery threshold dùng chung. Backend phải sử dụng
+  `DEFAULT_MISERY_THRESHOLD` từ `cinematch.recommendation.group`,
+  không khai báo một giá trị riêng.
+
+## Model-to-Group Contract
+
+### Model input
+
+NCF và Hybrid NCF sử dụng:
+
+```text
+user_index
+movie_index
