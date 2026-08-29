@@ -11,7 +11,7 @@ class NCFTrainer:
     def train_one_epoch(self, dataloader: DataLoader) -> float:
         self.model.train()
         total_loss = 0.0
-        
+
         for users, items, ratings in dataloader:
             self.optimizer.zero_grad()
             outputs = self.model(users, items)
@@ -19,5 +19,5 @@ class NCFTrainer:
             loss.backward()
             self.optimizer.step()
             total_loss += loss.item()
-            
+
         return total_loss / len(dataloader)
