@@ -15,8 +15,8 @@
       "poster_url": null,
       "runtime_minutes": null,
       "group_score": 4.6,
-      "minimum_score": 3.8,
-      "disagreement": 0.42,
+      "minimum_score": 4.4,
+      "disagreement": 0.2,
       "member_scores": [
         {
           "user_id": 1,
@@ -31,8 +31,9 @@
       ],
       "misery_warning": false,
       "explanations": [
-        "Phu hop the loai chung: Action, Sci-Fi",
-        "Khong co thanh vien bi diem duoi nguong misery"
+        "Aggregated using average",
+        "Group score 4.6000; minimum 4.4000; disagreement 0.2000",
+        "No member is below misery threshold 2.0"
       ]
     }
   ]

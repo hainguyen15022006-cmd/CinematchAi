@@ -9,9 +9,12 @@ from app.schemas.run import (
     RecommendationRequest,
     RecommendedMovie,
 )
+from cinematch.recommendation.group import (
+    DEFAULT_MISERY_THRESHOLD,
+)
 
 
-MISERY_THRESHOLD = 2.5
+MISERY_THRESHOLD = DEFAULT_MISERY_THRESHOLD
 MOCK_USERS = (
     (1, "Thanh vien 1"),
     (2, "Thanh vien 2"),
@@ -22,7 +25,7 @@ MOCK_CANDIDATES = (
     (2, "GoldenEye (1995)", ["Action", "Adventure", "Thriller"], (4.5, 3.9, 4.2)),
     (3, "Four Rooms (1995)", ["Thriller"], (3.6, 3.8, 3.5)),
     (4, "Get Shorty (1995)", ["Action", "Comedy", "Drama"], (4.2, 4.0, 4.1)),
-    (5, "Copycat (1995)", ["Crime", "Drama", "Thriller"], (4.1, 2.2, 3.9)),
+    (5, "Copycat (1995)", ["Crime", "Drama", "Thriller"], (4.1, 1.5, 3.9)),
     (6, "Shanghai Triad (1995)", ["Drama"], (3.7, 3.5, 3.8)),
     (7, "Twelve Monkeys (1995)", ["Drama", "Sci-Fi"], (4.7, 4.1, 4.5)),
     (8, "Babe (1995)", ["Children", "Comedy", "Drama"], (4.3, 4.6, 4.0)),

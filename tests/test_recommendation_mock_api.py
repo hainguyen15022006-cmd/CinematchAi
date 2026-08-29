@@ -4,6 +4,9 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.routers.recommendations import router
+from cinematch.recommendation.group import (
+    DEFAULT_MISERY_THRESHOLD,
+)
 
 
 app = FastAPI()
@@ -47,9 +50,20 @@ def test_average_without_misery_removes_low_scoring_movies() -> None:
 
     assert response.status_code == 200
     recommendations = response.json()["recommendations"]
+
     assert recommendations
-    assert all(not item["misery_warning"] for item in recommendations)
-    assert all(item["minimum_score"] >= 2.5 for item in recommendations)
+    assert all(
+        not item["misery_warning"]
+        for item in recommendations
+    )
+    assert all(
+        item["minimum_score"] >= DEFAULT_MISERY_THRESHOLD
+        for item in recommendations
+    )
+    assert 5 not in {
+        item["movie_id"]
+        for item in recommendations
+    }
 
 
 def test_mock_recommendation_rejects_invalid_request() -> None:
