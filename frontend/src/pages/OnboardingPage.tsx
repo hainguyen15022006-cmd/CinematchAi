@@ -34,7 +34,7 @@ export function OnboardingPage() {
       })
       .catch((err) => {
         if (active) {
-          setError(err instanceof ApiError ? err.message : 'Không tải được phim.')
+          setError(err instanceof ApiError ? err.message : 'Could not load movies.')
         }
       })
       .finally(() => {
@@ -63,9 +63,9 @@ export function OnboardingPage() {
     try {
       await api.rateMovie(movie.movielens_id, value)
       setRatings((current) => ({ ...current, [movie.movielens_id]: value }))
-      setSuccess(`Đã lưu ${value}/5 cho “${movie.title}”.`)
+      setSuccess(`Saved ${value}/5 for “${movie.title}”.`)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Không lưu được rating.')
+      setError(err instanceof ApiError ? err.message : 'Could not save rating.')
     } finally {
       setSaving(null)
     }
@@ -74,17 +74,17 @@ export function OnboardingPage() {
   return (
     <main className="page wide-page">
       <section className="page-heading">
-        <div><p className="eyebrow">ONBOARDING</p><h1>Chấm những phim bạn đã xem</h1><p className="muted">Rating được gửi trực tiếp tới <code>POST /ratings</code> bằng MovieLens ID.</p></div>
+        <div><p className="eyebrow">ONBOARDING</p><h1>Rate the movies you have watched</h1><p className="muted">Ratings are sent directly to <code>POST /ratings</code> using the MovieLens ID.</p></div>
         <div className="progress-card">
-          <strong>{hasReachedTarget ? `Đã chấm ${count} phim` : `${count}/${TARGET_RATINGS} phim`}</strong>
-          <span>{hasReachedTarget ? `Đã đạt yêu cầu tối thiểu ${TARGET_RATINGS} phim` : `Cần chấm thêm ${remaining} phim`}</span>
+          <strong>{hasReachedTarget ? `${count} movies rated` : `${count}/${TARGET_RATINGS} movies`}</strong>
+          <span>{hasReachedTarget ? `Minimum of ${TARGET_RATINGS} movies reached` : `Rate ${remaining} more`}</span>
           <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
         </div>
       </section>
       {error && <Alert type="error">{error}</Alert>}
       {success && <Alert type="success">{success}</Alert>}
-      <div className="toolbar"><input className="search-input" placeholder="Tìm phim..." value={query} onChange={(e) => setQuery(e.target.value)} /><span>{filtered.length} phim</span></div>
-      {loading ? <LoadingState label="Đang lấy danh sách phim..." /> : (
+      <div className="toolbar"><input className="search-input" placeholder="Search movies..." value={query} onChange={(e) => setQuery(e.target.value)} /><span>{filtered.length} movies</span></div>
+      {loading ? <LoadingState label="Loading movie list..." /> : (
         <section className="movie-grid">
           {filtered.map((movie) => (
             <article className="movie-card" key={movie.movielens_id}>
@@ -92,7 +92,7 @@ export function OnboardingPage() {
               <div className="movie-content">
                 <span className="movie-id">MovieLens #{movie.movielens_id}</span>
                 <h2>{movie.title}</h2>
-                <p>{movie.genres?.replaceAll('|', ' · ') || 'Chưa có thể loại'}</p>
+                <p>{movie.genres?.replaceAll('|', ' · ') || 'No genres'}</p>
                 <StarRating value={ratings[movie.movielens_id]} disabled={saving === movie.movielens_id} onChange={(value) => rate(movie, value)} />
               </div>
             </article>

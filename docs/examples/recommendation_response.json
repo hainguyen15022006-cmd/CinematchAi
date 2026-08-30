@@ -20,12 +20,12 @@
       "member_scores": [
         {
           "user_id": 1,
-          "display_name": "Thanh vien 1",
+          "display_name": "Member 1",
           "predicted_score": 4.8
         },
         {
           "user_id": 2,
-          "display_name": "Thanh vien 2",
+          "display_name": "Member 2",
           "predicted_score": 4.4
         }
       ],

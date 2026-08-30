@@ -1,26 +1,26 @@
-## Mô tả
-<!-- Vấn đề gì được giải quyết? Vì sao cần thay đổi này? -->
+## Description
+<!-- What problem is being solved? Why is this change needed? -->
 
-## Input / Output / Luồng xử lý
-<!-- Input vào là gì, output trả ra là gì, đi qua các bước nào? -->
+## Input / Output / Processing flow
+<!-- What is the input, what is the output, and which steps does it go through? -->
 
-## File thay đổi chính
+## Main files changed
 -
 
-## Test đã chạy
-<!-- Lệnh test đã chạy và kết quả (pass/fail), ví dụ: `python -m pytest -v tests/test_xxx.py` -->
+## Tests run
+<!-- Test commands that were run and their results (pass/fail), e.g. `python -m pytest -v tests/test_xxx.py` -->
 
-## Hạn chế / việc còn lại
-<!-- Phần chưa xong, edge case chưa xử lý, TODO cho tuần sau -->
+## Limitations / remaining work
+<!-- Unfinished parts, unhandled edge cases, TODOs for next week -->
 
-## Tài liệu / paper tham khảo
-<!-- Nếu thuật toán tham khảo từ nguồn ngoài, ghi rõ nguồn -->
+## Reference documents / papers
+<!-- If the algorithm is based on an external source, state the source clearly -->
 
 ## Checklist
-- [ ] Không chứa `data/raw`, `data/processed`, `outputs/`, checkpoint nặng, `.env` thật, `node_modules`, cache
-- [ ] Có test hoặc bằng chứng kiểm tra (log/ảnh chụp/kết quả pytest)
-- [ ] Tự giải thích được từng hàm lõi trong PR này
-- [ ] Đã gắn ít nhất một reviewer phụ trách module liên quan đến thay đổi trong PR này
+- [ ] Does not contain `data/raw`, `data/processed`, `outputs/`, heavy checkpoints, real `.env`, `node_modules`, caches
+- [ ] Has tests or verification evidence (logs/screenshots/pytest results)
+- [ ] Able to explain every core function in this PR
+- [ ] At least one reviewer responsible for the module affected by this PR has been assigned
 
-## Reviewer đề xuất
-<!-- Ghi tên người phụ trách module bị ảnh hưởng bởi PR này (ví dụ: PR sửa Backend -> gắn người phụ trách Backend hiện tại). Vai trò từng module có thể thay đổi theo tuần, nên chọn reviewer theo module thực tế thay vì theo tên cố định. -->
+## Suggested reviewer
+<!-- Write the name of the person responsible for the module affected by this PR (e.g. a PR modifying the Backend -> assign the current Backend owner). Module roles may change from week to week, so choose the reviewer based on the actual module rather than a fixed name. -->

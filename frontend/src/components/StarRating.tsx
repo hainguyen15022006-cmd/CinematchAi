@@ -6,13 +6,13 @@ interface Props {
 
 export function StarRating({ value = 0, disabled = false, onChange }: Props) {
   return (
-    <div className="star-rating" aria-label={`Đánh giá ${value}/5`}>
+    <div className="star-rating" aria-label={`Rating ${value}/5`}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           type="button"
           key={star}
           className={star <= value ? 'star active' : 'star'}
-          aria-label={`${star} sao`}
+          aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
           disabled={disabled}
           onClick={() => onChange(star)}
         >

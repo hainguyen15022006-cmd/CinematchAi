@@ -1,4 +1,4 @@
-"""Tests cho hợp đồng dữ liệu Group Recommendation v1."""
+"""Tests for the Group Recommendation v1 data contract."""
 
 import json
 from pathlib import Path

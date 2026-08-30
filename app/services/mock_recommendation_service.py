@@ -1,4 +1,4 @@
-"""Dữ liệu recommendation cố định phục vụ tích hợp Frontend tuần 1."""
+"""Fixed recommendation data for week-one Frontend integration."""
 
 from app.schemas.run import (
     GroupRecommendationOut,
@@ -16,9 +16,9 @@ from cinematch.recommendation.response import (
 
 MISERY_THRESHOLD = DEFAULT_MISERY_THRESHOLD
 MOCK_USERS = (
-    (1, "Thanh vien 1"),
-    (2, "Thanh vien 2"),
-    (3, "Thanh vien 3"),
+    (1, "Member 1"),
+    (2, "Member 2"),
+    (3, "Member 3"),
 )
 MOCK_CANDIDATES = (
     (1, "Toy Story (1995)", ["Animation", "Children", "Comedy"], (4.8, 4.4, 4.6)),
@@ -39,7 +39,7 @@ MOCK_CANDIDATES = (
 def build_mock_recommendations(
     request: RecommendationRequest,
 ) -> GroupRecommendationOut:
-    """Tạo Top-K ổn định bằng đúng logic Group Recommendation lõi."""
+    """Build a stable Top-K using the exact core Group Recommendation logic."""
     candidate_scores = {
         movie_id: scores
         for movie_id, _title, _genres, scores in MOCK_CANDIDATES

@@ -41,7 +41,7 @@ async function request<T>(path: string, init: RequestInit = {}, authenticated = 
 
   if (authenticated) {
     const token = getToken()
-    if (!token) throw new ApiError('Bạn chưa đăng nhập.', 401)
+    if (!token) throw new ApiError('You are not signed in.', 401)
     headers.set('Authorization', `Bearer ${token}`)
   }
 
@@ -49,16 +49,16 @@ async function request<T>(path: string, init: RequestInit = {}, authenticated = 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
   } catch {
-    throw new ApiError('Không kết nối được Backend. Hãy kiểm tra server ở cổng 8000.', 0)
+    throw new ApiError('Could not connect to the Backend. Check that the server is running on port 8000.', 0)
   }
 
   if (!response.ok) {
-    let message = `Request thất bại (${response.status}).`
+    let message = `Request failed (${response.status}).`
     try {
       const body = (await response.json()) as { detail?: string }
       if (body.detail) message = body.detail
     } catch {
-      // Backend không trả JSON lỗi.
+      // Backend did not return a JSON error body.
     }
     throw new ApiError(message, response.status)
   }
