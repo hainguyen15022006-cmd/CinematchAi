@@ -1,100 +1,100 @@
-# Test Plan — Tuần 1
+# Test Plan — Week 1
 
-Phạm vi: kiểm tra 6 mảng theo đúng cấu trúc code hiện có trên repo (Data, AI Baseline,
+Scope: verify 6 areas following the existing code structure in the repo (Data, AI Baseline,
 NCF/Hybrid, Group Recommendation & Evaluation, Backend API, Frontend).
 
-**Lưu ý về CI:** GitHub Actions (`ci.yml`) chỉ chạy `pytest` trên dữ liệu synthetic có
-sẵn trong code test, **không tự tải hoặc xử lý MovieLens 100K**. Do đó 4 test sau sẽ
-tự SKIP trên CI (không phải fail): `tests/test_candidates.py`,
-`tests/test_data_pipeline.py`, `tests/test_mapping.py` và
-`tests/test_splitting.py`. Để chạy toàn bộ test mà không skip, phải tải và xử lý dữ
-liệu trước:
+**Note on CI:** GitHub Actions (`ci.yml`) only runs `pytest` on the synthetic data
+available in the test code; it **does not download or process MovieLens 100K**. Therefore the
+following 4 tests SKIP themselves on CI (not fail): `tests/test_candidates.py`,
+`tests/test_data_pipeline.py`, `tests/test_mapping.py` and
+`tests/test_splitting.py`. To run the full test suite without skips, the data must be
+downloaded and processed first:
 ```
 python scripts/download_data.py
 python scripts/prepare_data.py
 python -m pytest -v
 ```
 
-## 1. Data (owner: Hải Anh — automated qua pytest)
-Test hiện có: `tests/test_dataset.py`, `tests/test_data_pipeline.py`,
+## 1. Data (owner: Hải Anh — automated via pytest)
+Existing tests: `tests/test_dataset.py`, `tests/test_data_pipeline.py`,
 `tests/test_mapping.py`, `tests/test_splitting.py`, `tests/test_auditing.py`,
 `tests/test_configuration.py`
 
-| Hạng mục | Cách kiểm tra | Kỳ vọng |
+| Item | How to verify | Expected |
 |---|---|---|
-| Load MovieLens raw | `load_ml100k_ratings`, `load_ml100k_movies` | Đúng số dòng/cột theo `docs/DATA_DICTIONARY.md` |
-| ID mapping | `build_id_mapping`, `apply_id_mappings` | Mapping xuôi/ngược nhất quán, không mất ID |
-| Temporal split | `test_splitting.py` | Train/val/test không chồng lấn theo user, tỷ lệ ~80/10/10 |
-| Data leakage | `test_auditing.py::validate_split_integrity` | Phát hiện được nếu có leakage giả lập |
-| Config loader | `test_configuration.py` | Báo lỗi rõ ràng khi config sai/thiếu field |
+| Load MovieLens raw | `load_ml100k_ratings`, `load_ml100k_movies` | Correct row/column counts per `docs/DATA_DICTIONARY.md` |
+| ID mapping | `build_id_mapping`, `apply_id_mappings` | Forward/reverse mapping consistent, no IDs lost |
+| Temporal split | `test_splitting.py` | Train/val/test do not overlap per user, ratio ~80/10/10 |
+| Data leakage | `test_auditing.py::validate_split_integrity` | Detects simulated leakage if present |
+| Config loader | `test_configuration.py` | Reports a clear error when the config is wrong/missing fields |
 
-Manual bổ sung: chạy `scripts/prepare_data.py` rồi `scripts/audit_splits.py` trên máy
-đã tải raw data, xác nhận `outputs/eda/split_audit.json` không có cảnh báo nghiêm trọng.
-(4 test phụ thuộc data artifact ở trên bị CI skip — phần này là bằng chứng thay thế
-chạy thủ công.)
+Additional manual check: run `scripts/prepare_data.py` then `scripts/audit_splits.py` on a machine
+that has downloaded the raw data, and confirm `outputs/eda/split_audit.json` has no serious warnings.
+(The 4 tests depending on data artifacts above are skipped by CI — this part is the substitute evidence
+from a manual run.)
 
-## 2. AI Baseline (owner: Thành — automated qua pytest)
-Test hiện có: `tests/test_baselines.py`
+## 2. AI Baseline (owner: Thành — automated via pytest)
+Existing tests: `tests/test_baselines.py`
 
-| Hạng mục | Cách kiểm tra | Kỳ vọng |
+| Item | How to verify | Expected |
 |---|---|---|
-| Most Popular | Unit test trên tập nhỏ | Xếp hạng đúng theo tần suất rating |
-| MF forward | Shape output, kiểm tra NaN | Output đúng shape `(batch,)`, không NaN |
-| MF train smoke | 1-2 epoch trên tập nhỏ | Loss giảm hoặc không tăng bất thường |
-| GMF forward/gradient | `nn.Module` forward + backward | Gradient tồn tại, không NaN/Inf |
+| Most Popular | Unit test on a small set | Correct ranking by rating frequency |
+| MF forward | Output shape, NaN check | Output has correct shape `(batch,)`, no NaN |
+| MF train smoke | 1-2 epochs on a small set | Loss decreases or does not increase abnormally |
+| GMF forward/gradient | `nn.Module` forward + backward | Gradients exist, no NaN/Inf |
 
-## 3. NCF / Hybrid NCF / Text Encoder (owner: Công Thành — automated qua pytest)
-Test hiện có: `tests/test_ncf.py`, `tests/test_hybrid_ncf.py`, `tests/test_text_encoder.py`
+## 3. NCF / Hybrid NCF / Text Encoder (owner: Công Thành — automated via pytest)
+Existing tests: `tests/test_ncf.py`, `tests/test_hybrid_ncf.py`, `tests/test_text_encoder.py`
 
-| Hạng mục | Cách kiểm tra | Kỳ vọng |
+| Item | How to verify | Expected |
 |---|---|---|
-| NCF forward | `test_ncf.py::test_ncf_forward_and_shapes` | Output shape `(batch,)`, không NaN/Inf |
-| Hybrid NCF forward | `test_hybrid_ncf.py::test_hybrid_ncf_forward_shape` | Output shape đúng, giá trị nằm trong khoảng rating hợp lệ (1.0–5.0) |
-| Text encoder | `test_text_encoder.py` | Vector encode trả về hữu hạn (finite), đúng số chiều cấu hình |
-| Hybrid side-features | `cinematch.features.hybrid_features.build_hybrid_side_features` | Kích thước feature khớp `HYBRID_SIDE_FEATURE_DIM` |
+| NCF forward | `test_ncf.py::test_ncf_forward_and_shapes` | Output shape `(batch,)`, no NaN/Inf |
+| Hybrid NCF forward | `test_hybrid_ncf.py::test_hybrid_ncf_forward_shape` | Correct output shape, values within the valid rating range (1.0–5.0) |
+| Text encoder | `test_text_encoder.py` | Encoded vector is finite, with the configured number of dimensions |
+| Hybrid side-features | `cinematch.features.hybrid_features.build_hybrid_side_features` | Feature size matches `HYBRID_SIDE_FEATURE_DIM` |
 
-## 4. Group Recommendation & Evaluation (owner: Sơn — automated qua pytest)
-Test hiện có: `tests/test_group.py`, `tests/test_ranking.py`,
+## 4. Group Recommendation & Evaluation (owner: Sơn — automated via pytest)
+Existing tests: `tests/test_group.py`, `tests/test_ranking.py`,
 `tests/test_candidates.py`, `tests/test_model_scores.py`,
 `tests/test_group_response.py`
 
-| Hạng mục | Cách kiểm tra | Kỳ vọng |
+| Item | How to verify | Expected |
 |---|---|---|
-| Average / Least Misery / Average Without Misery | `test_group.py` | Khớp kết quả tính tay theo `docs/GROUP_RECOMMENDATION_THEORY.md` |
-| Disagreement score | `test_group.py::disagreement_score` | Đúng công thức, không âm |
-| Ranking metrics (Recall@K, NDCG@K, Hit Rate@K, Coverage) | `test_ranking.py` | Khớp ví dụ tính tay |
-| Candidate protocol | `test_candidates.py` | Không lấy seen item làm negative; seed tái lập được |
-| Model-to-Group adapter | `test_model_scores.py` | Movie ID và score từng thành viên được căn đúng thứ tự |
-| Group response contract | `test_group_response.py` | Response chứa đủ field bắt buộc (group_score, minimum_score, disagreement, member_scores, explanations, fairness fields) |
+| Average / Least Misery / Average Without Misery | `test_group.py` | Matches hand-computed results per `docs/GROUP_RECOMMENDATION_THEORY.md` |
+| Disagreement score | `test_group.py::disagreement_score` | Correct formula, non-negative |
+| Ranking metrics (Recall@K, NDCG@K, Hit Rate@K, Coverage) | `test_ranking.py` | Matches hand-computed examples |
+| Candidate protocol | `test_candidates.py` | Seen items are not used as negatives; seed is reproducible |
+| Model-to-Group adapter | `test_model_scores.py` | Movie IDs and each member's scores are aligned in the correct order |
+| Group response contract | `test_group_response.py` | Response contains all required fields (group_score, minimum_score, disagreement, member_scores, explanations, fairness fields) |
 
-## 5. Backend API (owner: Chúc — automated qua pytest + manual qua Swagger)
-Test hiện có: `tests/test_api_basic.py`, `tests/test_recommendation_mock_api.py`,
+## 5. Backend API (owner: Chúc — automated via pytest + manual via Swagger)
+Existing tests: `tests/test_api_basic.py`, `tests/test_recommendation_mock_api.py`,
 `tests/test_recommendation_schema.py`
 
-| Hạng mục | Cách kiểm tra | Kỳ vọng |
+| Item | How to verify | Expected |
 |---|---|---|
 | Health check | `GET /health` | 200 OK |
-| Auth register/login | `test_api_basic.py` | Token trả về hợp lệ; sai mật khẩu → 401 |
-| Movies | `GET /movies` | Trả danh sách đúng schema |
-| Ratings | `POST /ratings` | Rating ngoài khoảng hợp lệ bị từ chối |
-| Mock recommendation | `POST /recommend/mock` | Đúng contract trong `docs/RECOMMENDATION_CONTRACT.md` |
+| Auth register/login | `test_api_basic.py` | Valid token returned; wrong password → 401 |
+| Movies | `GET /movies` | Returns a list with the correct schema |
+| Ratings | `POST /ratings` | Out-of-range ratings are rejected |
+| Mock recommendation | `POST /recommend/mock` | Matches the contract in `docs/RECOMMENDATION_CONTRACT.md` |
 
-Manual bổ sung: mở `http://127.0.0.1:8000/docs`, thử từng endpoint bằng tay, thử các
-case lỗi (token hết hạn, thiếu field, movie_id không tồn tại).
+Additional manual check: open `http://127.0.0.1:8000/docs`, try each endpoint by hand, and try the
+error cases (expired token, missing fields, non-existent movie_id).
 
-## 6. Frontend (owner: Dương — chủ yếu manual, build kiểm tra qua CI)
-Chưa có test tự động ở tuần 1 (đúng theo kế hoạch — "chưa cần giao diện đẹp"). CI chỉ
-xác nhận `npm run build` không lỗi. Manual test xem `MANUAL_TEST_CASES.md`.
+## 6. Frontend (owner: Dương — mainly manual, build verified via CI)
+No automated tests in week 1 (as planned — "no need for a polished UI yet"). CI only
+confirms that `npm run build` succeeds. For manual tests see `MANUAL_TEST_CASES.md`.
 
 ## 7. Integration (owner: Hoàng Anh)
-- Data → AI: `scripts/train_baseline.py` chạy được trên dữ liệu do `prepare_data.py`
-  sinh ra, không lỗi shape/mapping.
-- Frontend → Backend → Mock Top 10: đăng ký/đăng nhập → rating → gọi
-  `/recommend/mock` → hiển thị kết quả trên UI, không lỗi console.
+- Data → AI: `scripts/train_baseline.py` runs on the data generated by `prepare_data.py`
+  with no shape/mapping errors.
+- Frontend → Backend → Mock Top 10: register/login → rating → call
+  `/recommend/mock` → display results in the UI, no console errors.
 
-## Cách chạy toàn bộ automated test
+## How to run all automated tests
 ```
 python -m pytest -v
 cd frontend && npm run build
 ```
-Để chạy đầy đủ (không skip) bộ Data test raw, xem ghi chú CI ở đầu file này.
+To run the raw Data test suite in full (without skips), see the CI note at the top of this file.

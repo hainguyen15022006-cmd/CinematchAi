@@ -1,11 +1,11 @@
 # CineMatch Offline Evaluation Protocol
 
-## 1. Mục tiêu
+## 1. Objective
 
-Tài liệu này định nghĩa quy trình đánh giá offline thống nhất cho
-Most Popular, MF, GMF, NCF và Hybrid NCF.
+This document defines the unified offline evaluation procedure for
+Most Popular, MF, GMF, NCF and Hybrid NCF.
 
-Mọi mô hình phải sử dụng cùng:
+Every model must use the same:
 
 - Temporal split.
 - ID mapping.
@@ -17,12 +17,12 @@ Mọi mô hình phải sử dụng cùng:
 - Random seed.
 - Ranking metrics.
 
-Không được thay đổi candidate set riêng cho từng mô hình vì điều đó
-làm kết quả so sánh không công bằng.
+The candidate set must not be changed per model, because that would
+make the comparison unfair.
 
-## 2. Nguồn dữ liệu
+## 2. Data sources
 
-Dữ liệu được lấy từ các artifact do Data pipeline tạo:
+The data is taken from the artifacts produced by the Data pipeline:
 
 - `data/processed/train.csv`
 - `data/processed/validation.csv`
@@ -30,54 +30,55 @@ Dữ liệu được lấy từ các artifact do Data pipeline tạo:
 - `data/processed/movies.csv`
 - `data/processed/id_mappings.json`
 
-Ba file interaction sử dụng cùng schema:
+The three interaction files share the same schema:
 
-| Cột | Ý nghĩa |
+| Column | Meaning |
 |---|---|
-| `user_id` | ID user gốc của MovieLens |
-| `movie_id` | ID phim gốc của MovieLens |
-| `user_index` | Index liên tục dùng cho model |
-| `movie_index` | Index liên tục dùng cho model |
-| `rating` | Rating từ 1.0 đến 5.0 |
-| `timestamp` | Thời gian rating |
+| `user_id` | Original MovieLens user ID |
+| `movie_id` | Original MovieLens movie ID |
+| `user_index` | Contiguous index used by the model |
+| `movie_index` | Contiguous index used by the model |
+| `rating` | Rating from 1.0 to 5.0 |
+| `timestamp` | Rating time |
 
-Đánh giá offline và model sử dụng `user_index` và `movie_index`.
-API và giao diện sử dụng `movie_id`. Việc chuyển đổi phải dùng
+Offline evaluation and the model use `user_index` and `movie_index`.
+The API and the interface use `movie_id`. The conversion must use
 `id_mappings.json`.
 
 ## 3. Temporal split
 
-MovieLens 100K được chia theo thời gian riêng cho từng user:
+MovieLens 100K is split temporally per user:
 
-- 80% tương tác cũ nhất: train.
-- 10% tiếp theo: validation.
-- 10% mới nhất: test.
+- The oldest 80% of interactions: train.
+- The next 10%: validation.
+- The newest 10%: test.
 
-Quy mô hiện tại:
+Current sizes:
 
-| Partition | Số dòng | Số user |
+| Partition | Number of rows | Number of users |
 |---|---:|---:|
-| Train | 80.014 | 943 |
-| Validation | 10.132 | 943 |
-| Test | 9.854 | 943 |
+| Train | 80,014 | 943 |
+| Validation | 10,132 | 943 |
+| Test | 9,854 | 943 |
 
-Chỉ train được dùng để cập nhật trọng số model.
+Only train is used to update the model weights.
 
-Validation được dùng để chọn checkpoint hoặc hyperparameter.
+Validation is used to select checkpoints or hyperparameters.
 
-Test chỉ được dùng để báo cáo kết quả cuối cùng. Không được sử
-dụng test để huấn luyện, early stopping hoặc chọn cấu hình.
+Test is used only to report the final results. Test must not be
+used for training, early stopping or configuration selection.
 
-Audit hiện tại xác nhận:
+The current audit confirms:
 
-- Không có interaction overlap giữa các partition.
-- Không có train-validation temporal violation.
-- Không có validation-test temporal violation.
-- Không có user cold-start.
+- No interaction overlap between partitions.
+- No train-validation temporal violations.
+- No validation-test temporal violations.
+- No user cold-start.
 
 ## 4. Seen items
 
-Với mỗi user:
+For each user:
 
 ```text
 seen_items = train_movie_indices ∪ validation_movie_indices
+```

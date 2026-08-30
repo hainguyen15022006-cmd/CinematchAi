@@ -1,4 +1,4 @@
-export function LoadingState({ label = 'Đang tải...' }: { label?: string }) {
+export function LoadingState({ label = 'Loading...' }: { label?: string }) {
   return (
     <div className="loading-state" role="status">
       <span className="spinner" />

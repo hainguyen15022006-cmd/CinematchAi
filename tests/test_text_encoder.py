@@ -1,4 +1,5 @@
 import json
+import unicodedata
 
 import pytest
 import torch
@@ -9,14 +10,14 @@ from cinematch.features.hybrid_features import (
 )
 from cinematch.features.text_encoder import (
     TextEncoderConfig,
-    VietnameseTextEncoder,
+    PreferenceTextEncoder,
 )
 
 
 def test_encode_returns_finite_float_vector_with_expected_dimension():
-    encoder = VietnameseTextEncoder(TextEncoderConfig(dimension=128))
+    encoder = PreferenceTextEncoder(TextEncoderConfig(dimension=128))
 
-    vector = encoder.encode("Thích phim hành động hài, có plot twist.")
+    vector = encoder.encode("I like action comedies with a plot twist.")
 
     assert vector.shape == (128,)
     assert vector.dtype == torch.float32
@@ -25,43 +26,63 @@ def test_encode_returns_finite_float_vector_with_expected_dimension():
 
 
 def test_same_text_produces_the_same_vector():
-    encoder = VietnameseTextEncoder()
-    sentence = "Không thích phim kinh dị quá bạo lực."
+    encoder = PreferenceTextEncoder()
+    sentence = "I do not like very violent horror films."
 
     assert torch.equal(encoder.encode(sentence), encoder.encode(sentence))
 
 
 def test_different_text_does_not_produce_the_same_vector():
-    encoder = VietnameseTextEncoder()
+    encoder = PreferenceTextEncoder()
 
-    action = encoder.encode("Tôi thích phim hành động.")
-    romance = encoder.encode("Tôi thích phim tình cảm.")
+    action = encoder.encode("I like action films.")
+    romance = encoder.encode("I like romantic films.")
 
     assert not torch.equal(action, romance)
 
 
+def test_vietnamese_preference_text_is_supported():
+    # Users may still enter their preferences in Vietnamese. The encoder is
+    # language-agnostic (NFC normalization + Unicode-aware tokenization), so
+    # accented text must produce a valid vector and be stable across
+    # Unicode normalization forms.
+    encoder = PreferenceTextEncoder()
+
+    vector = encoder.encode(
+        "Tôi thích phim hành động hài và không quá bạo lực."
+    )
+    decomposed = unicodedata.normalize(
+        "NFD", "Tôi thích phim hành động hài và không quá bạo lực."
+    )
+
+    assert vector.shape == (encoder.dimension,)
+    assert torch.isfinite(vector).all()
+    assert torch.isclose(torch.linalg.vector_norm(vector), torch.tensor(1.0))
+    assert torch.equal(vector, encoder.encode(decomposed))
+
+
 @pytest.mark.parametrize("text", ["", "   ", "!!!"])
 def test_empty_preference_text_is_rejected(text):
-    encoder = VietnameseTextEncoder()
+    encoder = PreferenceTextEncoder()
 
     with pytest.raises(ValueError, match="cannot be empty"):
         encoder.encode(text)
 
 
 def test_encode_batch_returns_one_row_per_sentence():
-    encoder = VietnameseTextEncoder()
+    encoder = PreferenceTextEncoder()
     vectors = encoder.encode_batch(
-        ["Thích phim hài.", "Không thích phim kinh dị."]
+        ["I like comedies.", "I do not like horror films."]
     )
 
     assert vectors.shape == (2, 128)
 
 
 def test_artifact_round_trip_preserves_predictions(tmp_path):
-    encoder = VietnameseTextEncoder(TextEncoderConfig(dimension=64))
+    encoder = PreferenceTextEncoder(TextEncoderConfig(dimension=64))
     artifact_path = encoder.save_artifact(tmp_path / "text_encoder.json")
-    restored = VietnameseTextEncoder.load_artifact(artifact_path)
-    sentence = "Thích phim khoa học viễn tưởng."
+    restored = PreferenceTextEncoder.load_artifact(artifact_path)
+    sentence = "I like science fiction films."
 
     assert restored.config == encoder.config
     assert torch.equal(restored.encode(sentence), encoder.encode(sentence))
@@ -72,8 +93,8 @@ def test_artifact_round_trip_preserves_predictions(tmp_path):
 
 def test_hybrid_feature_builder_follows_documented_contract():
     batch_size = 3
-    encoder = VietnameseTextEncoder()
-    text = encoder.encode_batch(["Thích phim hài."] * batch_size)
+    encoder = PreferenceTextEncoder()
+    text = encoder.encode_batch(["I like comedies."] * batch_size)
     side_features = build_hybrid_side_features(
         genres=torch.zeros(batch_size, 19),
         normalized_year=torch.zeros(batch_size, 1),

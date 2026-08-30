@@ -1,18 +1,18 @@
-"""Run the week-one Vietnamese preference encoder demonstration."""
+"""Run the week-one preference text encoder demonstration."""
 
 from __future__ import annotations
 
 import torch
 
-from cinematch.features.text_encoder import VietnameseTextEncoder
+from cinematch.features.text_encoder import PreferenceTextEncoder
 
 
 def main() -> None:
-    encoder = VietnameseTextEncoder()
+    encoder = PreferenceTextEncoder()
     sentences = [
-        "Thích phim hành động hài, có plot twist, không quá bạo lực.",
-        "Muốn xem phim tình cảm nhẹ nhàng cùng bạn bè.",
-        "Không thích phim kinh dị hoặc quá nhiều cảnh máu me.",
+        "I like action comedies with a plot twist that are not too violent.",
+        "I want to watch a light romantic film with friends.",
+        "I do not like horror films or too many gory scenes.",
     ]
     vectors = encoder.encode_batch(sentences)
 

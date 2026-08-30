@@ -1,20 +1,20 @@
 # Group Recommendation Theory
 
-## 1. Mục tiêu
+## 1. Objective
 
-Module Group Recommendation nhận điểm dự đoán cá nhân của
-từng thành viên cho từng phim, sau đó tổng hợp thành một điểm
-chung để xếp hạng phim cho cả nhóm.
+The Group Recommendation module takes each member's individual
+predicted score for each movie, then aggregates them into a single
+group score to rank movies for the whole group.
 
-Module này không huấn luyện mô hình Deep Learning. Điểm cá
-nhân được cung cấp bởi Most Popular, MF, GMF, NCF hoặc Hybrid
+This module does not train a Deep Learning model. Individual
+scores are provided by Most Popular, MF, GMF, NCF or Hybrid
 NCF.
 
-Trong tuần 1, điểm dự đoán sử dụng thang từ 1 đến 5.
+In week 1, predicted scores use a scale from 1 to 5.
 
-## 2. Dữ liệu đầu vào minh họa
+## 2. Illustrative input data
 
-Giả sử nhóm có bốn thành viên và ba phim:
+Suppose the group has four members and three movies:
 
 | Movie | Member 1 | Member 2 | Member 3 | Member 4 |
 |---|---:|---:|---:|---:|
@@ -22,16 +22,16 @@ Giả sử nhóm có bốn thành viên và ba phim:
 | B | 4.0 | 4.0 | 4.0 | 4.0 |
 | C | 4.5 | 3.5 | 4.0 | 3.0 |
 
-Mỗi hàng là một phim. Các cột Member là điểm mà mô hình dự
-đoán cho từng thành viên.
+Each row is a movie. The Member columns are the scores the model
+predicts for each member.
 
 ## 3. Average
 
-Average tính trung bình cộng điểm của tất cả thành viên:
+Average computes the arithmetic mean of all members' scores:
 
 GroupScore(i) = sum(score(u, i)) / number_of_members
 
-### Tính tay
+### Worked by hand
 
 Movie A:
 
@@ -49,25 +49,25 @@ Movie C:
 Average(C) = (4.5 + 3.5 + 4.0 + 3.0) / 4
            = 3.75
 
-Thứ tự theo Average:
+Ranking by Average:
 
 1. Movie A: 4.125
 2. Movie B: 4.0
 3. Movie C: 3.75
 
-### Nhận xét
+### Remarks
 
-Average tối ưu mức hài lòng trung bình. Tuy nhiên, Movie A
-được xếp đầu dù Member 4 chỉ có điểm 1.5. Như vậy, điểm cao
-của đa số có thể che khuất sự phản đối mạnh của một thành viên.
+Average optimizes mean satisfaction. However, Movie A
+is ranked first even though Member 4 only has a score of 1.5. Thus, high
+scores from the majority can mask strong objection from one member.
 
 ## 4. Least Misery
 
-Least Misery dùng điểm thấp nhất của các thành viên:
+Least Misery uses the lowest score among the members:
 
 GroupScore(i) = min(score(u, i))
 
-### Tính tay
+### Worked by hand
 
 LeastMisery(A) = min(5.0, 5.0, 5.0, 1.5) = 1.5
 
@@ -75,78 +75,78 @@ LeastMisery(B) = min(4.0, 4.0, 4.0, 4.0) = 4.0
 
 LeastMisery(C) = min(4.5, 3.5, 4.0, 3.0) = 3.0
 
-Thứ tự theo Least Misery:
+Ranking by Least Misery:
 
 1. Movie B: 4.0
 2. Movie C: 3.0
 3. Movie A: 1.5
 
-### Nhận xét
+### Remarks
 
-Least Misery bảo vệ thành viên ít hài lòng nhất. Một thành
-viên có thể gần như phủ quyết một phim bằng cách có điểm rất
-thấp. Nhược điểm là chiến lược này có thể quá thận trọng và
-không tận dụng được mức hài lòng cao của đa số.
+Least Misery protects the least satisfied member. A single
+member can almost veto a movie by having a very low
+score. The drawback is that this strategy can be overly conservative and
+fail to take advantage of the majority's high satisfaction.
 
 ## 5. Average Without Misery
 
-Average Without Misery thực hiện hai giai đoạn:
+Average Without Misery proceeds in two stages:
 
-1. Loại phim có minimum score nhỏ hơn misery threshold.
-2. Tính Average cho những phim còn lại.
+1. Remove movies whose minimum score is below the misery threshold.
+2. Compute the Average for the remaining movies.
 
-Trong ví dụ này:
+In this example:
 
 misery_threshold = 2.0
 
-Quy tắc:
+Rules:
 
-- minimum_score < 2.0: phim bị loại.
-- minimum_score >= 2.0: phim được giữ lại.
+- minimum_score < 2.0: the movie is removed.
+- minimum_score >= 2.0: the movie is kept.
 
-### Tính tay
+### Worked by hand
 
 Movie A:
 
 minimum_score = 1.5
 
-Vì 1.5 < 2.0 nên Movie A bị loại.
+Since 1.5 < 2.0, Movie A is removed.
 
 Movie B:
 
 minimum_score = 4.0
 average_score = 4.0
 
-Movie B được giữ lại với GroupScore bằng 4.0.
+Movie B is kept with a GroupScore of 4.0.
 
 Movie C:
 
 minimum_score = 3.0
 average_score = 3.75
 
-Movie C được giữ lại với GroupScore bằng 3.75.
+Movie C is kept with a GroupScore of 3.75.
 
-Thứ tự theo Average Without Misery:
+Ranking by Average Without Misery:
 
 1. Movie B: 4.0
 2. Movie C: 3.75
 
-Movie A không xuất hiện vì vi phạm misery threshold.
+Movie A does not appear because it violates the misery threshold.
 
-### Nhận xét
+### Remarks
 
-Average Without Misery cân bằng giữa Average và Least
-Misery. Minimum score được dùng như điều kiện loại phim,
-nhưng những phim vượt qua điều kiện vẫn được xếp hạng bằng
+Average Without Misery balances Average and Least
+Misery. The minimum score is used as a filtering condition,
+but movies that pass the condition are still ranked by
 Average.
 
 ## 6. Minimum score
 
-Minimum score là điểm dự đoán thấp nhất trong nhóm:
+The minimum score is the lowest predicted score in the group:
 
 MinimumScore(i) = min(score(u, i))
 
-Kết quả:
+Results:
 
 | Movie | Minimum score |
 |---|---:|
@@ -154,19 +154,19 @@ Kết quả:
 | B | 4.0 |
 | C | 3.0 |
 
-Minimum score giúp giải thích mức hài lòng của thành viên ít
-hài lòng nhất.
+The minimum score helps explain the satisfaction level of the least
+satisfied member.
 
 ## 7. Disagreement
 
-Disagreement đo mức phân tán điểm giữa các thành viên. Trong
-tuần 1, module sử dụng population standard deviation:
+Disagreement measures the dispersion of scores among members. In
+week 1, the module uses the population standard deviation:
 
 Disagreement(i) =
 sqrt(sum((score(u, i) - average(i))^2) / number_of_members)
 
-Giá trị nhỏ thể hiện mức đồng thuận cao. Giá trị lớn thể hiện
-các thành viên có ý kiến khác nhau.
+A small value indicates high consensus. A large value indicates
+that members have differing opinions.
 
 ### Movie A
 
@@ -187,7 +187,7 @@ Disagreement(A) = sqrt(2.296875) = 1.5155
 
 ### Movie B
 
-Tất cả thành viên đều có điểm 4.0 nên:
+All members have a score of 4.0, so:
 
 Disagreement(B) = 0.0
 
@@ -208,7 +208,7 @@ Variance = 1.25 / 4 = 0.3125
 
 Disagreement(C) = sqrt(0.3125) = 0.5590
 
-### Kết quả
+### Results
 
 | Movie | Average | Minimum | Disagreement |
 |---|---:|---:|---:|
@@ -216,49 +216,49 @@ Disagreement(C) = sqrt(0.3125) = 0.5590
 | B | 4.000 | 4.0 | 0.0000 |
 | C | 3.750 | 3.0 | 0.5590 |
 
-Movie B có sự đồng thuận cao nhất. Movie A có mức bất đồng
-cao nhất.
+Movie B has the highest consensus. Movie A has the highest
+disagreement.
 
-## 8. Phân biệt hai threshold
+## 8. Distinguishing the two thresholds
 
-Positive rating threshold và misery threshold không có cùng
-mục đích.
+The positive rating threshold and the misery threshold do not serve the
+same purpose.
 
 ### Positive rating threshold
 
 positive_rating_threshold = 4.0
 
-Được dùng trong evaluation. Một phim user chấm từ 4 trở lên
-được xem là relevant.
+Used in evaluation. A movie the user rated 4 or higher
+is considered relevant.
 
 ### Misery threshold
 
 misery_threshold = 2.0
 
-Được dùng trong Average Without Misery. Phim bị loại nếu có
-thành viên nhận predicted score dưới 2.0.
+Used in Average Without Misery. A movie is removed if any
+member receives a predicted score below 2.0.
 
-Không được dùng hai threshold thay thế cho nhau.
+The two thresholds must not be used interchangeably.
 
-## 9. Quy tắc tie-break dự kiến
+## 9. Planned tie-break rules
 
-Khi hai phim có cùng GroupScore, hệ thống dự kiến ưu tiên:
+When two movies have the same GroupScore, the system is planned to prioritize:
 
-1. Minimum score cao hơn.
-2. Disagreement thấp hơn.
-3. Movie ID nhỏ hơn để kết quả có thể tái lập.
+1. Higher minimum score.
+2. Lower disagreement.
+3. Smaller Movie ID so that results are reproducible.
 
-Quy tắc này sẽ được kiểm thử trước khi tích hợp Backend.
+These rules will be tested before Backend integration.
 
-## 10. So sánh các chiến lược
+## 10. Comparison of strategies
 
-| Strategy | Cách tính | Ưu điểm | Hạn chế |
+| Strategy | Computation | Advantages | Limitations |
 |---|---|---|---|
-| Average | Trung bình điểm | Tối ưu hài lòng trung bình | Có thể bỏ qua người phản đối |
-| Least Misery | Điểm thấp nhất | Bảo vệ người ít hài lòng nhất | Có thể quá thận trọng |
-| Average Without Misery | Lọc theo minimum, sau đó lấy average | Cân bằng hai mục tiêu | Phụ thuộc misery threshold |
+| Average | Mean of scores | Optimizes mean satisfaction | May ignore objectors |
+| Least Misery | Lowest score | Protects the least satisfied member | May be overly conservative |
+| Average Without Misery | Filter by minimum, then take the average | Balances both objectives | Depends on the misery threshold |
 
-## 11. Nguồn tham khảo
+## 11. References
 
 - Stratigi et al., "Sequential group recommendations based on
   satisfaction and disagreement scores", Journal of Intelligent

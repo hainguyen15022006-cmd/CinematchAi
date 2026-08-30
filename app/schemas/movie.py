@@ -17,12 +17,12 @@ class MovieOut(BaseModel):
 class RatingCreate(BaseModel):
     movie_id: int = Field(
         gt=0,
-        description="ID gốc MovieLens, không phải khóa nội bộ database",
+        description="Original MovieLens ID, not the internal database key",
     )
     rating: float = Field(
         ge=1,
         le=5,
-        description="Điểm rating, bắt buộc trong khoảng 1-5",
+        description="Rating value, must be within the 1-5 range",
     )
 
 class RatingOut(BaseModel):

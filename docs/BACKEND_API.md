@@ -1,10 +1,11 @@
 # CineMatch Backend API (MVP)
 
-Tài liệu này mô tả phần Backend tuần 1 để Chúc, Dương và các thành viên
-tích hợp cùng một quy ước. Swagger tại `http://127.0.0.1:8000/docs` là
-nguồn tham chiếu chính xác cho request/response đang chạy.
+This document describes the week 1 Backend so that Chúc, Dương and the other
+members integrate against a single convention. Swagger at
+`http://127.0.0.1:8000/docs` is the authoritative reference for the
+request/response that is currently running.
 
-## Khởi động
+## Getting started
 
 ```bash
 cp .env.example .env
@@ -14,82 +15,85 @@ python scripts/seed_movies.py
 uvicorn app.main:app --reload
 ```
 
-`scripts/seed_movies.py` đọc `data/processed/movies.csv`. Script có thể
-chạy lại nhiều lần: phim mới được thêm, phim đã có được cập nhật theo
+`scripts/seed_movies.py` reads `data/processed/movies.csv`. The script can be
+run multiple times: new movies are added, and existing movies are updated by
 `movielens_id`.
 
-MVP chưa dùng migration tool. Nếu đã tạo `cinematch.db` bằng schema Backend
-cũ, hãy sao lưu rồi xóa database local đó trước khi seed lại. Việc này không
-ảnh hưởng dữ liệu đã commit vì các file `.db` được Git bỏ qua.
+The MVP does not use a migration tool yet. If you already created
+`cinematch.db` with the old Backend schema, back it up and then delete that
+local database before seeding again. This does not affect committed data
+because `.db` files are ignored by Git.
 
-## Xác thực
+## Authentication
 
-Đăng ký hoặc đăng nhập để nhận JWT, sau đó gửi header:
+Register or log in to receive a JWT, then send the header:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-Endpoint `/health`, `/movies` và `/recommend/mock` không yêu cầu token.
-Các endpoint profile, rating, room, run và vote yêu cầu token.
+The `/health`, `/movies` and `/recommend/mock` endpoints do not require a token.
+The profile, rating, room, run and vote endpoints require a token.
 
-## Endpoint chính
+## Main endpoints
 
-| Method | Path | Chức năng |
+| Method | Path | Function |
 |---|---|---|
-| `GET` | `/health` | Kiểm tra API hoạt động |
-| `POST` | `/auth/register` | Tạo tài khoản |
-| `POST` | `/auth/login` | Nhận JWT |
-| `GET` | `/users/me` | Lấy profile hiện tại |
-| `PUT` | `/users/me/preferences` | Cập nhật mô tả sở thích |
-| `GET` | `/movies` | Lấy danh mục phim |
-| `GET` | `/ratings` | Lấy rating đã lưu của user hiện tại |
-| `POST` | `/ratings` | Tạo hoặc cập nhật rating |
-| `POST` | `/rooms` | Tạo phòng |
-| `GET` | `/rooms/{code}` | Lấy lobby của phòng |
-| `POST` | `/rooms/{code}/join` | Tham gia phòng |
-| `POST` | `/rooms/{id}/ready` | Đổi trạng thái ready |
-| `PUT` | `/rooms/{id}/constraints` | Host cập nhật ràng buộc |
-| `POST` | `/rooms/{id}/recommend` | Host tạo run mock trong DB |
-| `GET` | `/runs/{id}/items` | Lấy shortlist của run |
-| `POST` | `/runs/{id}/votes` | Tạo hoặc đổi lựa chọn của user |
-| `POST` | `/runs/{id}/finalize` | Host chốt kết quả vote |
-| `GET` | `/runs/{id}/result` | Thành viên lấy kết quả đã chốt |
-| `POST` | `/recommend/mock` | Top-K giả theo contract v1 |
+| `GET` | `/health` | Check that the API is running |
+| `POST` | `/auth/register` | Create an account |
+| `POST` | `/auth/login` | Obtain a JWT |
+| `GET` | `/users/me` | Get the current profile |
+| `PUT` | `/users/me/preferences` | Update the preference description |
+| `GET` | `/movies` | Get the movie catalog |
+| `GET` | `/ratings` | Get the saved ratings of the current user |
+| `POST` | `/ratings` | Create or update a rating |
+| `POST` | `/rooms` | Create a room |
+| `GET` | `/rooms/{code}` | Get the room lobby |
+| `POST` | `/rooms/{code}/join` | Join a room |
+| `POST` | `/rooms/{id}/ready` | Toggle ready status |
+| `PUT` | `/rooms/{id}/constraints` | Host updates the constraints |
+| `POST` | `/rooms/{id}/recommend` | Host creates a mock run in the DB |
+| `GET` | `/runs/{id}/items` | Get the shortlist of a run |
+| `POST` | `/runs/{id}/votes` | Create or change the user's choice |
+| `POST` | `/runs/{id}/finalize` | Host finalizes the vote result |
+| `GET` | `/runs/{id}/result` | Members get the finalized result |
+| `POST` | `/recommend/mock` | Mock Top-K following contract v1 |
 
-## Quy ước ID
+## ID conventions
 
-- API nhận và trả `movie_id` theo ID gốc MovieLens.
-- `movies.id` là khóa nội bộ database và không phải API contract.
-- `movie_index` chỉ dành cho embedding của mô hình AI.
-- Backend nối kết quả AI với metadata bằng `movie_id`/`movielens_id`.
+- The API accepts and returns `movie_id` as the original MovieLens ID.
+- `movies.id` is the internal database key and is not part of the API contract.
+- `movie_index` is reserved for the AI model's embeddings.
+- The Backend joins AI results with metadata via `movie_id`/`movielens_id`.
 
-## Recommendation mock và AI thật
+## Mock recommendation and the real AI
 
-`POST /recommend/mock` là endpoint không cần database, giúp Frontend làm
-song song khi AI thật chưa hoàn thành. Response đầy đủ fairness fields,
-được mô tả trong `docs/RECOMMENDATION_CONTRACT.md`.
+`POST /recommend/mock` is a database-free endpoint that lets the Frontend
+work in parallel while the real AI is not yet finished. The response includes
+the full set of fairness fields, described in
+`docs/RECOMMENDATION_CONTRACT.md`.
 
-`POST /rooms/{id}/recommend` hiện tạo shortlist xác định từ movie catalog
-để kiểm thử luồng room/vote. Khi tích hợp AI, thay phần adapter trong
-`app/services/ai_service.py`; không đổi response schema đã chốt.
+`POST /rooms/{id}/recommend` currently creates a deterministic shortlist from
+the movie catalog to test the room/vote flow. When integrating the AI, replace
+the adapter in `app/services/ai_service.py`; do not change the agreed response
+schema.
 
-## Trạng thái và quy tắc vote
+## States and voting rules
 
-- Phòng mới ở trạng thái `OPEN`; chỉ host được chạy recommendation.
-- Một phòng dùng để recommendation phải có từ 2 đến 5 thành viên; người thứ 6 bị từ chối.
-- Mọi thành viên phải `ready` trước khi host tạo run.
-- Run ở trạng thái `VOTING` mới nhận vote.
-- Mỗi user chỉ có một lựa chọn trong một run; gửi lại sẽ đổi phim đã chọn.
-- Chỉ phim thuộc shortlist của run mới được vote.
-- Host gọi `finalize` để chốt; hòa phiếu được phá bằng thứ hạng ban đầu.
-- `GET result` không làm thay đổi database và chỉ hoạt động sau khi chốt.
+- A new room is in the `OPEN` state; only the host can run the recommendation.
+- A room used for recommendation must have 2 to 5 members; the 6th person is rejected.
+- Every member must be `ready` before the host creates a run.
+- Only a run in the `VOTING` state accepts votes.
+- Each user has exactly one choice per run; submitting again changes the selected movie.
+- Only movies in the run's shortlist can be voted for.
+- The host calls `finalize` to lock the result; ties are broken by the initial ranking.
+- `GET result` does not modify the database and only works after finalization.
 
-## Kiểm thử
+## Testing
 
 ```bash
 python -m pytest -v
 ```
 
-Test Backend dùng SQLite in-memory riêng và không xóa hay sửa
-`cinematch.db` của lập trình viên.
+Backend tests use their own in-memory SQLite and do not delete or modify the
+developer's `cinematch.db`.

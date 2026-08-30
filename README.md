@@ -1,13 +1,13 @@
 # CineMatch AI
 
-CineMatch là hệ thống gợi ý phim cho nhóm, kết hợp mô hình
-Deep Learning với các chiến lược Group Recommendation.
+CineMatch is a group movie recommendation system that combines
+Deep Learning models with Group Recommendation strategies.
 
-Repository đang được phát triển theo phạm vi MVP bốn tuần.
-Phần Data cung cấp một pipeline có thể tái lập trên
-MovieLens 100K cho MF, GMF, NCF và Hybrid NCF.
+The repository is being developed within a four-week MVP scope.
+The Data part provides a reproducible pipeline on
+MovieLens 100K for MF, GMF, NCF and Hybrid NCF.
 
-## Thành viên
+## Team members
 
 - Hải Anh: Data.
 - Thành: AI Baseline, MF, GMF.
@@ -15,15 +15,15 @@ MovieLens 100K cho MF, GMF, NCF và Hybrid NCF.
 - Chúc: Backend.
 - Dương: Frontend.
 - Hoàng Anh: Testing, Integration, DevOps.
-- Thành viên còn lại: Group Recommendation và Evaluation.
+- Sơn: Group Recommendation and Evaluation.
 
-## Yêu cầu môi trường
+## Environment requirements
 
 - Python 3.12.
 - Git.
-- Kết nối mạng trong lần tải MovieLens đầu tiên.
+- Network access for the first MovieLens download.
 
-Trên macOS hoặc Linux:
+On macOS or Linux:
 
 ```bash
 python3.12 -m venv .venv
@@ -32,19 +32,19 @@ python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
 ```
 
-`pyproject.toml` là nguồn dependency chính. File
-`requirements.txt` chỉ gọi lại nhóm dependency phát triển để
-tránh khai báo phiên bản ở hai nơi khác nhau.
+`pyproject.toml` is the primary source of dependencies. The
+`requirements.txt` file only re-references the development dependency
+group to avoid declaring versions in two different places.
 
-## Chạy Data pipeline
+## Running the Data pipeline
 
-Tải MovieLens 100K:
+Download MovieLens 100K:
 
 ```bash
 python scripts/download_data.py
 ```
 
-Khảo sát và kiểm tra dữ liệu raw:
+Explore and inspect the raw data:
 
 ```bash
 python scripts/inspect_data.py \
@@ -54,18 +54,18 @@ python scripts/inspect_movies.py \
 python scripts/audit_movie_metadata.py
 ```
 
-Tạo dữ liệu model-ready và chạy post-split audit:
+Generate model-ready data and run the post-split audit:
 
 ```bash
 python scripts/prepare_data.py
 python scripts/audit_splits.py
 ```
 
-Các đường dẫn, tỷ lệ split, số lượng kỳ vọng và positive
-threshold được quản lý tập trung trong
+Paths, split ratios, expected counts and the positive
+threshold are managed centrally in
 `configs/cinematch.yaml`.
 
-## Kết quả được tạo
+## Generated outputs
 
 ```text
 data/processed/
@@ -83,54 +83,54 @@ outputs/eda/
 └── split_audit.json
 ```
 
-Các file trên là dữ liệu dẫn xuất và không được commit lên
-GitHub. Thành viên trong nhóm tái tạo chúng bằng các script.
+The files above are derived data and are not committed to
+GitHub. Team members regenerate them using the scripts.
 
-## Data contract cho mô hình
+## Data contract for the models
 
-Ba partition có cùng schema:
+All three partitions share the same schema:
 
 ```text
 user_id, movie_id, user_index, movie_index, rating, timestamp
 ```
 
-- MF, GMF và NCF dùng `user_index` và `movie_index`.
-- `user_id` và `movie_id` được giữ để kết nối Backend.
-- `rating` là target cho explicit-feedback training.
-- `timestamp` dùng để chứng minh temporal split, không phải
-  feature embedding mặc định.
-- Hybrid NCF có thể join 19 cột genre từ `movies.csv` bằng
+- MF, GMF and NCF use `user_index` and `movie_index`.
+- `user_id` and `movie_id` are kept for Backend integration.
+- `rating` is the target for explicit-feedback training.
+- `timestamp` is used to demonstrate the temporal split, not as a
+  default embedding feature.
+- Hybrid NCF can join the 19 genre columns from `movies.csv` via
   `movie_id`.
 
-Chỉ `train.csv` được dùng để fit tham số mô hình.
-`validation.csv` dùng để chọn hyperparameter hoặc early
-stopping. `test.csv` chỉ dùng cho đánh giá cuối cùng.
+Only `train.csv` is used to fit model parameters.
+`validation.csv` is used for hyperparameter selection or early
+stopping. `test.csv` is used only for the final evaluation.
 
 ## Evaluation protocol
 
-- Per-user temporal split gần 80/10/10.
-- Rating từ 4 trở lên được coi là positive interaction.
-- Candidate construction và negative sampling phải giống
-  nhau giữa các mô hình được so sánh.
-- Không xóa item cold-start khỏi dữ liệu gốc.
-- Báo cáo metric trên full test và có thể báo cáo thêm
-  warm-start metric.
+- Per-user temporal split of approximately 80/10/10.
+- Ratings of 4 or higher are treated as positive interactions.
+- Candidate construction and negative sampling must be identical
+  across the models being compared.
+- Cold-start items are not removed from the original data.
+- Metrics are reported on the full test set, and warm-start metrics
+  may additionally be reported.
 
-Chi tiết nằm trong `docs/DATA_REPORT.md` và
+Details are in `docs/DATA_REPORT.md` and
 `docs/DATA_DICTIONARY.md`.
 
-## Kiểm thử
+## Testing
 
-Chạy toàn bộ test:
+Run the full test suite:
 
 ```bash
 python -m pytest -v
 ```
 
-## Chạy Backend API
+## Running the Backend API
 
-Sau khi tạo môi trường và Data pipeline, tạo file cấu hình local rồi seed
-movie catalog:
+After setting up the environment and the Data pipeline, create the local
+configuration file and seed the movie catalog:
 
 ```bash
 cp .env.example .env
@@ -138,44 +138,44 @@ python scripts/seed_movies.py
 uvicorn app.main:app --reload
 ```
 
-Kiểm tra API tại:
+Check the API at:
 
 - Health check: `http://127.0.0.1:8000/health`
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - OpenAPI JSON: `http://127.0.0.1:8000/openapi.json`
 
-Backend dùng FastAPI, SQLAlchemy và SQLite cho MVP. Authentication dùng
-JWT; mật khẩu được hash bằng Argon2. `movie_id` trong API luôn là ID gốc
-MovieLens, không phải khóa nội bộ `movies.id`.
+The Backend uses FastAPI, SQLAlchemy and SQLite for the MVP. Authentication
+uses JWT; passwords are hashed with Argon2. `movie_id` in the API is always
+the original MovieLens ID, not the internal `movies.id` key.
 
-Frontend có thể tích hợp sớm bằng `POST /recommend/mock`. Endpoint này trả
-Top-K xác định theo contract v1 mà chưa cần model hoặc database. Chi tiết
-endpoint, luồng room/vote và quy ước ID nằm trong
-`docs/BACKEND_API.md`; schema Group Recommendation nằm trong
+The Frontend can integrate early via `POST /recommend/mock`. This endpoint
+returns a deterministic Top-K according to contract v1 without requiring a
+model or database. Endpoint details, the room/vote flow and ID conventions
+are in `docs/BACKEND_API.md`; the Group Recommendation schema is in
 `docs/RECOMMENDATION_CONTRACT.md`.
 
-Cách ghép nhánh và kết quả kiểm thử chung Frontend–Backend tuần 1 được ghi
-trong `docs/FE_BE_INTEGRATION_WEEK1.md`.
+How the branches were merged and the results of the week 1 joint
+Frontend–Backend testing are recorded in `docs/FE_BE_INTEGRATION_WEEK1.md`.
 
-## Chạy AI baseline
+## Running the AI baselines
 
-Sau khi chạy Data pipeline, huấn luyện Most Popular, MF và GMF trên
-cùng temporal split:
+After running the Data pipeline, train Most Popular, MF and GMF on the
+same temporal split:
 
 ```bash
 python scripts/train_baseline.py
 python scripts/evaluate_baselines.py
 ```
 
-Hyperparameter nằm trong `baselines` của `configs/cinematch.yaml`.
-Checkpoint và bảng MSE/RMSE/MAE được ghi vào `outputs/baselines/` và
-không commit lên GitHub. Lý thuyết và evaluation contract được mô tả
-trong `docs/BASELINE_THEORY.md`.
+Hyperparameters are under `baselines` in `configs/cinematch.yaml`.
+Checkpoints and the MSE/RMSE/MAE table are written to `outputs/baselines/`
+and are not committed to GitHub. The theory and evaluation contract are
+described in `docs/BASELINE_THEORY.md`.
 
-## Chạy NCF, Hybrid NCF và text demo
+## Running NCF, Hybrid NCF and the text demo
 
-Các smoke training tuần 1 dùng dữ liệu nhỏ để xác nhận forward và
-backpropagation. Chúng chưa phải kết quả đánh giá cuối trên MovieLens.
+The week 1 smoke training runs use small data to confirm forward and
+backpropagation. They are not yet final evaluation results on MovieLens.
 
 ```bash
 python scripts/train_ncf.py
@@ -187,24 +187,24 @@ python -m pytest \
   tests/test_text_encoder.py -v
 ```
 
-- Lý thuyết NCF: `docs/NCF_THEORY.md`.
-- Thiết kế và feature dimensions: `docs/HYBRID_DESIGN.md`.
+- NCF theory: `docs/NCF_THEORY.md`.
+- Design and feature dimensions: `docs/HYBRID_DESIGN.md`.
 - Text artifact schema: `docs/TEXT_ARTIFACT_CONTRACT.md`.
 
-Kiểm tra định dạng thay đổi trước khi commit:
+Check the formatting of changes before committing:
 
 ```bash
 git diff --check
 git status --short
 ```
 
-## Chính sách Git cho dữ liệu
+## Git policy for data
 
-Không commit:
+Do not commit:
 
 - `data/raw/**`
 - `data/processed/**`
 - `outputs/**`
-- virtual environment, cache hoặc model checkpoint.
+- virtual environments, caches or model checkpoints.
 
-Các file `.gitkeep` được giữ để duy trì cấu trúc thư mục.
+`.gitkeep` files are kept to preserve the directory structure.

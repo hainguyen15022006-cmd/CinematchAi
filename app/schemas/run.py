@@ -9,7 +9,7 @@ from app.schemas.user import UserOut
 
 
 class AggregationStrategy(str, Enum):
-    """Các chiến lược tổng hợp điểm được CineMatch hỗ trợ."""
+    """Score aggregation strategies supported by CineMatch."""
 
     AVERAGE = "average"
     LEAST_MISERY = "least_misery"
@@ -17,7 +17,7 @@ class AggregationStrategy(str, Enum):
 
 
 class RecommendationRequest(BaseModel):
-    """Request của Frontend khi chủ phòng yêu cầu Top-K đề xuất."""
+    """Frontend request sent when the room host asks for Top-K recommendations."""
 
     room_id: int = Field(gt=0)
     strategy: AggregationStrategy
@@ -25,7 +25,7 @@ class RecommendationRequest(BaseModel):
 
 
 class MemberScore(BaseModel):
-    """Điểm AI dự đoán cho một thành viên đối với một phim."""
+    """AI-predicted score of one member for one movie."""
 
     user_id: int = Field(gt=0)
     display_name: Optional[str] = None
@@ -59,7 +59,7 @@ class RecommendationRunOut(BaseModel):
 class VoteCreate(BaseModel):
     movie_id: int = Field(
         gt=0,
-        description="ID gốc MovieLens",
+        description="Original MovieLens ID",
     )
     vote_value: float = Field(default=1, ge=-1, le=1)
 
@@ -90,9 +90,9 @@ class RunResultOut(BaseModel):
     votes: List[VoteOut] = Field(default_factory=list)
 
 class RecommendedMovie(BaseModel):
-    """Một phim trong Top-K cùng dữ liệu fairness và giải thích."""
+    """One movie in the Top-K together with its fairness data and explanations."""
 
-    movie_id: int = Field(gt=0, description="ID gốc MovieLens")
+    movie_id: int = Field(gt=0, description="Original MovieLens ID")
     rank: int = Field(ge=1)
     title: str = Field(min_length=1)
     genres: List[str] = Field(default_factory=list)
@@ -111,11 +111,11 @@ class RecommendedMovie(BaseModel):
 
 
 class GroupRecommendationOut(BaseModel):
-    """Response Top-K dùng chung cho Backend và Frontend.
+    """Top-K response shared by the Backend and the Frontend.
 
-    ``top_movies`` từ bản nháp cũ vẫn được chấp nhận khi validate để code
-    thử nghiệm của Chúc không bị gãy. Khi serialize, tên chuẩn được dùng là
-    ``recommendations``.
+    ``top_movies`` from the earlier draft is still accepted during validation
+    so that Chuc's experimental code does not break. When serializing, the
+    canonical name ``recommendations`` is used.
     """
 
     schema_version: str = "1.0"

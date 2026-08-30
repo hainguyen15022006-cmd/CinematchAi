@@ -5,19 +5,19 @@ export function HomePage() {
     <main className="page hero-page">
       <section className="hero-card">
         <p className="eyebrow">GROUP MOVIE RECOMMENDATION</p>
-        <h1>Tìm bộ phim mà cả nhóm đều muốn xem.</h1>
+        <h1>Find the movie everyone in the group wants to watch.</h1>
         <p className="hero-copy">
-          Chấm những phim bạn thích, vào phòng cùng bạn bè và xem Top 10 được tổng hợp theo điểm của cả nhóm.
+          Rate the movies you like, join a room with your friends, and see a Top 10 aggregated from the whole group's scores.
         </p>
         <div className="hero-actions">
-          <Link className="button primary" to="/register">Bắt đầu</Link>
-          <Link className="button secondary" to="/recommendations">Xem mock Top 10</Link>
+          <Link className="button primary" to="/register">Get started</Link>
+          <Link className="button secondary" to="/recommendations">View mock Top 10</Link>
         </div>
       </section>
-      <section className="feature-grid" aria-label="Các bước sử dụng">
-        <article><span>01</span><h2>Tạo tài khoản</h2><p>Đăng ký và đăng nhập để nhận JWT từ Backend.</p></article>
-        <article><span>02</span><h2>Chấm phim</h2><p>Frontend lấy catalog thật và gửi rating 1–5 qua API.</p></article>
-        <article><span>03</span><h2>Chọn cùng nhau</h2><p>Top 10 hiển thị score, disagreement, member score và cảnh báo misery.</p></article>
+      <section className="feature-grid" aria-label="How it works">
+        <article><span>01</span><h2>Create an account</h2><p>Register and sign in to receive a JWT from the Backend.</p></article>
+        <article><span>02</span><h2>Rate movies</h2><p>The Frontend loads the real catalog and sends 1–5 ratings through the API.</p></article>
+        <article><span>03</span><h2>Choose together</h2><p>The Top 10 shows group score, disagreement, member scores, and misery warnings.</p></article>
       </section>
     </main>
   )
