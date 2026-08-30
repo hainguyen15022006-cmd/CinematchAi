@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.movie import Movie
 from app.models.recommendation import RecommendationRun, RunItem
 from app.models.room import Room, RoomMember
+from cinematch.recommendation.group import MAX_GROUP_SIZE, MIN_GROUP_SIZE
 
 
 def _mock_ai_score(movielens_id: int) -> float:
@@ -26,7 +27,15 @@ def trigger_recommendation(db: Session, room_id: int, host_id: int) -> Recommend
 
     # Check if all members are ready
     members = db.query(RoomMember).filter(RoomMember.room_id == room_id).all()
-    if not members or not all(member.is_ready for member in members):
+    if not MIN_GROUP_SIZE <= len(members) <= MAX_GROUP_SIZE:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Room must contain between "
+                f"{MIN_GROUP_SIZE} and {MAX_GROUP_SIZE} members"
+            ),
+        )
+    if not all(member.is_ready for member in members):
         raise HTTPException(status_code=400, detail="Not all members are ready")
 
     movies = db.query(Movie).order_by(Movie.movielens_id).limit(10).all()

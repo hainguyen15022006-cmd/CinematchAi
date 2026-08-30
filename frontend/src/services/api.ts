@@ -101,6 +101,8 @@ export const api = {
       true,
     ),
 
+  myRatings: () => request<Rating[]>('/ratings', {}, true),
+
   recommendations: (room_id: number, strategy: AggregationStrategy, top_k = 10) =>
     request<RecommendationResponse>('/recommend/mock', {
       method: 'POST',

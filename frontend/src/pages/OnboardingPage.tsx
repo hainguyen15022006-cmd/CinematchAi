@@ -17,10 +17,33 @@ export function OnboardingPage() {
   const [query, setQuery] = useState('')
 
   useEffect(() => {
-    api.movies(50, 0)
-      .then(setMovies)
-      .catch((err) => setError(err instanceof ApiError ? err.message : 'Không tải được phim.'))
-      .finally(() => setLoading(false))
+    let active = true
+
+    Promise.all([api.movies(50, 0), api.myRatings()])
+      .then(([loadedMovies, savedRatings]) => {
+        if (!active) return
+        const savedByMovie = savedRatings.reduce<Record<number, number>>(
+          (current, item) => {
+            current[item.movie_id] = item.rating
+            return current
+          },
+          {},
+        )
+        setMovies(loadedMovies)
+        setRatings(savedByMovie)
+      })
+      .catch((err) => {
+        if (active) {
+          setError(err instanceof ApiError ? err.message : 'Không tải được phim.')
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
   }, [])
 
   const filtered = useMemo(() => {
@@ -30,6 +53,8 @@ export function OnboardingPage() {
 
   const count = Object.keys(ratings).length
   const progress = Math.min(100, Math.round((count / TARGET_RATINGS) * 100))
+  const hasReachedTarget = count >= TARGET_RATINGS
+  const remaining = Math.max(0, TARGET_RATINGS - count)
 
   async function rate(movie: Movie, value: number) {
     setError('')
@@ -50,7 +75,11 @@ export function OnboardingPage() {
     <main className="page wide-page">
       <section className="page-heading">
         <div><p className="eyebrow">ONBOARDING</p><h1>Chấm những phim bạn đã xem</h1><p className="muted">Rating được gửi trực tiếp tới <code>POST /ratings</code> bằng MovieLens ID.</p></div>
-        <div className="progress-card"><strong>{count}/{TARGET_RATINGS}</strong><span>phim đã chấm trong phiên này</span><div className="progress-track"><i style={{ width: `${progress}%` }} /></div></div>
+        <div className="progress-card">
+          <strong>{hasReachedTarget ? `Đã chấm ${count} phim` : `${count}/${TARGET_RATINGS} phim`}</strong>
+          <span>{hasReachedTarget ? `Đã đạt yêu cầu tối thiểu ${TARGET_RATINGS} phim` : `Cần chấm thêm ${remaining} phim`}</span>
+          <div className="progress-track"><i style={{ width: `${progress}%` }} /></div>
+        </div>
       </section>
       {error && <Alert type="error">{error}</Alert>}
       {success && <Alert type="success">{success}</Alert>}

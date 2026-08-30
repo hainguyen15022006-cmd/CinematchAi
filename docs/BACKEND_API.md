@@ -43,6 +43,7 @@ Các endpoint profile, rating, room, run và vote yêu cầu token.
 | `GET` | `/users/me` | Lấy profile hiện tại |
 | `PUT` | `/users/me/preferences` | Cập nhật mô tả sở thích |
 | `GET` | `/movies` | Lấy danh mục phim |
+| `GET` | `/ratings` | Lấy rating đã lưu của user hiện tại |
 | `POST` | `/ratings` | Tạo hoặc cập nhật rating |
 | `POST` | `/rooms` | Tạo phòng |
 | `GET` | `/rooms/{code}` | Lấy lobby của phòng |
@@ -76,6 +77,7 @@ song song khi AI thật chưa hoàn thành. Response đầy đủ fairness field
 ## Trạng thái và quy tắc vote
 
 - Phòng mới ở trạng thái `OPEN`; chỉ host được chạy recommendation.
+- Một phòng dùng để recommendation phải có từ 2 đến 5 thành viên; người thứ 6 bị từ chối.
 - Mọi thành viên phải `ready` trước khi host tạo run.
 - Run ở trạng thái `VOTING` mới nhận vote.
 - Mỗi user chỉ có một lựa chọn trong một run; gửi lại sẽ đổi phim đã chọn.

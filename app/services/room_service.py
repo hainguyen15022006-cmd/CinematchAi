@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.models.room import Room, RoomMember
+from cinematch.recommendation.group import MAX_GROUP_SIZE
 
 
 def generate_unique_room_code(db: Session) -> str:
@@ -38,10 +39,21 @@ def join_room(db: Session, code: str, user_id: int) -> Room:
         RoomMember.room_id == room.id,
         RoomMember.user_id == user_id,
     ).first()
-    if not existing_member:
-        member = RoomMember(room_id=room.id, user_id=user_id, is_ready=False)
-        db.add(member)
-        db.commit()
+    if existing_member:
+        return room
+
+    member_count = db.query(RoomMember).filter(
+        RoomMember.room_id == room.id
+    ).count()
+    if member_count >= MAX_GROUP_SIZE:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Room already has maximum {MAX_GROUP_SIZE} members",
+        )
+
+    member = RoomMember(room_id=room.id, user_id=user_id, is_ready=False)
+    db.add(member)
+    db.commit()
 
     return room
 

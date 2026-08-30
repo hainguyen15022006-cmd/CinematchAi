@@ -177,6 +177,9 @@ def test_create_rating_uses_movielens_id_and_updates_existing() -> None:
     assert updated.status_code == 201
     assert updated.json()["movie_id"] == 50
     assert updated.json()["rating"] == 5
+    saved = client.get("/ratings", headers=headers)
+    assert saved.status_code == 200
+    assert saved.json() == [updated.json()]
     with TestingSessionLocal() as db:
         ratings = db.query(Rating).filter(Rating.user_id == user_id).all()
         assert len(ratings) == 1
@@ -190,6 +193,9 @@ def test_create_rating_requires_authentication() -> None:
 
     assert response.status_code == 401
     assert response.headers["www-authenticate"] == "Bearer"
+
+    saved = client.get("/ratings")
+    assert saved.status_code == 401
 
 
 @pytest.mark.parametrize("rating", [0, 6])
@@ -213,6 +219,50 @@ def test_recommend_mock_matches_contract() -> None:
 
     assert response.status_code == 200
     assert len(response.json()["recommendations"]) == 3
+
+
+def test_single_member_room_cannot_start_recommendation() -> None:
+    _, host_token = register_and_login("solo-host@example.com")
+    headers = authorization(host_token)
+    created = client.post("/rooms", json={"name": "Solo"}, headers=headers)
+    room = created.json()
+
+    ready = client.post(f"/rooms/{room['id']}/ready", headers=headers)
+    recommendation = client.post(
+        f"/rooms/{room['id']}/recommend",
+        headers=headers,
+    )
+
+    assert ready.status_code == 200
+    assert recommendation.status_code == 400
+    assert "between 2 and 5 members" in recommendation.json()["detail"]
+
+
+def test_room_rejects_sixth_member() -> None:
+    _, host_token = register_and_login("limit-host@example.com")
+    created = client.post(
+        "/rooms",
+        json={"name": "Full room"},
+        headers=authorization(host_token),
+    )
+    room = created.json()
+
+    for member_number in range(1, 5):
+        _, token = register_and_login(f"member-{member_number}@example.com")
+        joined = client.post(
+            f"/rooms/{room['code']}/join",
+            headers=authorization(token),
+        )
+        assert joined.status_code == 200
+
+    _, sixth_token = register_and_login("member-5@example.com")
+    rejected = client.post(
+        f"/rooms/{room['code']}/join",
+        headers=authorization(sixth_token),
+    )
+
+    assert rejected.status_code == 409
+    assert rejected.json()["detail"] == "Room already has maximum 5 members"
 
 
 def test_room_ready_recommend_and_single_vote_flow() -> None:
