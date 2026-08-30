@@ -1,55 +1,55 @@
-# Manual Test Cases — Tuần 1
+# Manual Test Cases — Week 1
 
-Ghi kết quả PASS/FAIL + ảnh chụp hoặc log vào cột "Kết quả" mỗi lần chạy.
+Record PASS/FAIL plus screenshots or logs in the "Result" column on each run.
 
-## 1. Setup máy sạch
-| ID | Bước | Kỳ vọng | Kết quả |
+## 1. Clean machine setup
+| ID | Steps | Expected | Result |
 |---|---|---|---|
-| SETUP-01 | Clone repo vào thư mục mới, làm theo README từ đầu | Không bước nào lỗi/thiếu hướng dẫn | PASS (đã fix riêng vấn đề PowerShell venv activation — xem ghi chú cuối file) |
-| SETUP-02 | `python -m pip install -e ".[dev]"` | Cài đặt thành công, không lỗi dependency | PASS sau khi sửa `httpx2` thành `httpx`; lần chạy đầu tiên FAIL và được lưu tại Bug #1 |
-| SETUP-03 | `python -m pytest -v` | Toàn bộ test pass | PASS sau khi tải và xử lý MovieLens 100K; 4 test ban đầu SKIP vì thiếu data artifact, không phải lỗi |
-| SETUP-04 | `cp .env.example .env && python scripts/seed_movies.py && uvicorn app.main:app --reload` | Server chạy, `/health` trả 200 | PASS |
-| SETUP-05 | `cd frontend && npm install && npm run dev` | Frontend chạy ở cổng 5173 | PASS |
+| SETUP-01 | Clone the repo into a new directory, follow the README from the beginning | No step fails or lacks instructions | PASS (the PowerShell venv activation issue was fixed separately — see the note at the end of the file) |
+| SETUP-02 | `python -m pip install -e ".[dev]"` | Installation succeeds, no dependency errors | PASS after changing `httpx2` to `httpx`; the first run FAILED and is recorded as Bug #1 |
+| SETUP-03 | `python -m pytest -v` | All tests pass | PASS after downloading and processing MovieLens 100K; 4 tests initially SKIPPED due to missing data artifacts, not an error |
+| SETUP-04 | `cp .env.example .env && python scripts/seed_movies.py && uvicorn app.main:app --reload` | Server runs, `/health` returns 200 | PASS |
+| SETUP-05 | `cd frontend && npm install && npm run dev` | Frontend runs on port 5173 | PASS |
 
 ## 2. Auth (Backend + Frontend)
-| ID | Bước | Kỳ vọng | Kết quả |
+| ID | Steps | Expected | Result |
 |---|---|---|---|
-| AUTH-01 | Đăng ký tài khoản mới qua UI | Tạo thành công, chuyển hướng đúng | PASS |
-| AUTH-02 | Đăng ký với email đã tồn tại | Báo lỗi rõ ràng, không crash | PASS — lần 2 trả 400, message "Email already registered" |
-| AUTH-03 | Đăng nhập đúng thông tin | Nhận token, lưu vào client | PASS |
-| AUTH-04 | Đăng nhập sai mật khẩu | Báo lỗi rõ ràng cho người dùng | PASS — hiển thị "invalid password" |
-| AUTH-05 | Gọi API cần auth mà không có token | Trả 401, không lộ dữ liệu | PASS — trả 401, message "Missing or malformed token" |
+| AUTH-01 | Register a new account via the UI | Created successfully, correct redirect | PASS |
+| AUTH-02 | Register with an existing email | Clear error message, no crash | PASS — second attempt returns 400, message "Email already registered" |
+| AUTH-03 | Log in with correct credentials | Token received, stored on the client | PASS |
+| AUTH-04 | Log in with wrong password | Clear error message shown to the user | PASS — displays "invalid password" |
+| AUTH-05 | Call an auth-required API without a token | Returns 401, no data exposed | PASS — returns 401, message "Missing or malformed token" |
 
 ## 3. Movies & Ratings
-| ID | Bước | Kỳ vọng | Kết quả |
+| ID | Steps | Expected | Result |
 |---|---|---|---|
-| RATE-01 | Xem danh sách phim trên onboarding | Hiển thị card phim, tên, thể loại và poster placeholder trong MVP | PASS |
-| RATE-02 | Gửi rating hợp lệ (1-5) | Lưu thành công (`POST /ratings` → 201 Created) | PASS |
-| RATE-03 | Gửi rating ngoài khoảng | Bị từ chối, thông báo lỗi | PASS |
-| RATE-04 | Gửi rating khi chưa đăng nhập | Bị chặn / yêu cầu đăng nhập | PASS |
+| RATE-01 | View the movie list on onboarding | Displays movie cards, titles, genres and a poster placeholder in the MVP | PASS |
+| RATE-02 | Submit a valid rating (1-5) | Saved successfully (`POST /ratings` → 201 Created) | PASS |
+| RATE-03 | Submit an out-of-range rating | Rejected with an error message | PASS |
+| RATE-04 | Submit a rating while not logged in | Blocked / login required | PASS |
 
 ## 4. Mock Recommendation
-| ID | Bước | Kỳ vọng | Kết quả |
+| ID | Steps | Expected | Result |
 |---|---|---|---|
-| REC-01 | Gọi mock recommend qua UI ("Tạo Top 10") | Trả đúng schema (group_score, minimum_score, disagreement, member_scores, explanations) | PASS — response khớp đầy đủ contract |
-| REC-02 | Đổi giữa 3 strategy (Average / Least Misery / Average Without Misery) | Mỗi strategy cho kết quả khác nhau hợp lý | PASS |
-| REC-03 | Gọi với Room ID không tồn tại (9999, 9999999) | (Mock) vẫn trả kết quả; cần validate khi nối backend thật | PASS cho mock, nhưng **ghi chú**: chưa có validation Room ID tồn tại — cần theo dõi khi API thật thay thế mock (không phải bug ở tuần 1, vì README ghi rõ đây là mock endpoint chưa cần đăng nhập/validate) |
+| REC-01 | Call mock recommend via the UI ("Generate Top 10") | Returns the correct schema (group_score, minimum_score, disagreement, member_scores, explanations) | PASS — response fully matches the contract |
+| REC-02 | Switch between the 3 strategies (Average / Least Misery / Average Without Misery) | Each strategy gives reasonably different results | PASS |
+| REC-03 | Call with a non-existent Room ID (9999, 9999999) | (Mock) still returns a result; needs validation when connected to the real backend | PASS for mock, but **note**: no validation yet that the Room ID exists — needs to be tracked when the real API replaces the mock (not a bug in week 1, since the README clearly states this is a mock endpoint that does not yet require login/validation) |
 
 ## 5. Integration end-to-end
-| ID | Bước | Kỳ vọng | Kết quả |
+| ID | Steps | Expected | Result |
 |---|---|---|---|
-| E2E-01 | Đăng ký → rating → xem mock Top 10 | Toàn bộ luồng không lỗi console/network | PASS |
-| E2E-02 | Reload trang giữa luồng | Không mất trạng thái đăng nhập | PASS |
+| E2E-01 | Register → rating → view mock Top 10 | Entire flow with no console/network errors | PASS |
+| E2E-02 | Reload the page mid-flow | Login state is not lost | PASS |
 
-## Bug tìm thấy trong quá trình test
+## Bugs found during testing
 
-### Bug #1 — `httpx2` thay vì `httpx` trong `pyproject.toml`
-- **Mức độ:** Blocker cho clean-machine setup
-- **Bước tái hiện:** Clone repo mới → `python -m pip install -e ".[dev]"` → `python -m pytest -v`
-- **Kết quả thực tế:** `tests/test_api_basic.py` lỗi `ModuleNotFoundError: httpx` vì `pyproject.toml` khai `httpx2>=2,<3` — đây là package khác trên PyPI, không cung cấp module `httpx` mà FastAPI `TestClient` cần.
-- **Fix đã áp dụng:** Đổi `httpx2` → `httpx` trong dev-dependencies của `pyproject.toml`.
-- **Owner đề xuất:** Chúc (Backend) hoặc người quản lý `pyproject.toml`.
+### Bug #1 — `httpx2` instead of `httpx` in `pyproject.toml`
+- **Severity:** Blocker for clean-machine setup
+- **Steps to reproduce:** Clone a fresh repo → `python -m pip install -e ".[dev]"` → `python -m pytest -v`
+- **Actual result:** `tests/test_api_basic.py` fails with `ModuleNotFoundError: httpx` because `pyproject.toml` declares `httpx2>=2,<3` — this is a different package on PyPI that does not provide the `httpx` module required by FastAPI `TestClient`.
+- **Fix applied:** Changed `httpx2` → `httpx` in the dev-dependencies of `pyproject.toml`.
+- **Suggested owner:** Chúc (Backend) or whoever maintains `pyproject.toml`.
 
-## Ghi chú môi trường
-- Test trên Windows, PowerShell, Python 3.14.3 (venv riêng cho project), Node.js v24.19.0 / npm 11.17.0.
-- PowerShell không hỗ trợ cú pháp `&&`/`source` như bash — README nên bổ sung hướng dẫn PowerShell riêng (activate bằng `.venv\Scripts\Activate.ps1`, chạy `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` nếu bị chặn script).
+## Environment notes
+- Tested on Windows, PowerShell, Python 3.14.3 (separate venv for the project), Node.js v24.19.0 / npm 11.17.0.
+- PowerShell does not support the `&&`/`source` syntax like bash — the README should add separate PowerShell instructions (activate with `.venv\Scripts\Activate.ps1`, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` if script execution is blocked).

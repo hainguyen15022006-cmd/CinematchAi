@@ -1,4 +1,4 @@
-"""Nhập movie catalog đã xử lý vào database của Backend."""
+"""Import the processed movie catalog into the Backend database."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 from sqlalchemy.orm import Session
 
-import app.models  # noqa: F401 -- đăng ký toàn bộ bảng với SQLAlchemy
+import app.models  # noqa: F401 -- register every table with SQLAlchemy
 from app.core.db import Base, SessionLocal, engine
 from app.models.movie import Movie
 
@@ -57,7 +57,7 @@ def _genres(row: pd.Series, columns: set[str]) -> str | None:
 
 
 def seed_movies(csv_path: Path, db: Session) -> tuple[int, int]:
-    """Insert phim mới và cập nhật phim đã tồn tại theo MovieLens ID."""
+    """Insert new movies and update existing ones keyed by MovieLens ID."""
     if not csv_path.is_file():
         raise FileNotFoundError(
             f"Movie catalog not found: {csv_path}. "

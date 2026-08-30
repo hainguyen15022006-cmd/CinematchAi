@@ -1,4 +1,4 @@
-"""Integration tests cho các luồng Backend quan trọng của CineMatch."""
+"""Integration tests for the key CineMatch Backend flows."""
 
 from collections.abc import Iterator
 
@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-import app.models  # noqa: F401 -- đăng ký toàn bộ bảng
+import app.models  # noqa: F401 -- register every table
 from app.core.db import Base, get_db
 from app.models.movie import Movie, Rating
 from app.models.recommendation import Vote
@@ -60,7 +60,7 @@ client = TestClient(api_app)
 
 @pytest.fixture(autouse=True)
 def clean_test_database() -> Iterator[None]:
-    """Mỗi test dùng database in-memory, không chạm cinematch.db."""
+    """Each test uses an in-memory database and never touches cinematch.db."""
     Base.metadata.drop_all(bind=TEST_ENGINE)
     Base.metadata.create_all(bind=TEST_ENGINE)
     with TestingSessionLocal() as db:

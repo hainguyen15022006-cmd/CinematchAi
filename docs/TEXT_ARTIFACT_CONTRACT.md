@@ -1,14 +1,14 @@
 # Text encoder artifact contract v1
 
-## 1. Mục đích
+## 1. Purpose
 
-Artifact giúp training và serving tái tạo đúng cùng một text encoder.
-Baseline tuần 1 là deterministic feature hashing nên không có trọng số
-học được; artifact chỉ cần lưu cấu hình.
+The artifact allows training and serving to recreate exactly the same text encoder.
+The week 1 baseline is deterministic feature hashing, so there are no learned
+weights; the artifact only needs to store the configuration.
 
 ## 2. JSON schema
 
-Ví dụ `artifacts/text_encoder.json`:
+Example `artifacts/text_encoder.json`:
 
 ```json
 {
@@ -20,28 +20,28 @@ Ví dụ `artifacts/text_encoder.json`:
 }
 ```
 
-| Trường | Kiểu | Ý nghĩa |
+| Field | Type | Meaning |
 |---|---|---|
-| `schema_version` | string | Phiên bản contract, hiện là `1.0` |
-| `encoder_type` | string | Thuật toán encoder |
-| `dimension` | integer | Số chiều của mỗi text vector |
-| `lowercase` | boolean | Có chuyển văn bản thành chữ thường hay không |
-| `ngram_range` | array[integer] | Kích thước unigram/bigram được hash |
+| `schema_version` | string | Contract version, currently `1.0` |
+| `encoder_type` | string | Encoder algorithm |
+| `dimension` | integer | Number of dimensions of each text vector |
+| `lowercase` | boolean | Whether the text is converted to lowercase |
+| `ngram_range` | array[integer] | Sizes of the unigrams/bigrams to be hashed |
 
-Loader phải từ chối artifact thiếu trường, sai version hoặc sai encoder
-type. Artifact và checkpoint được sinh lại nên không commit vào Git.
+The loader must reject artifacts with missing fields, a wrong version or a wrong encoder
+type. Artifacts and checkpoints are regenerated, so they are not committed to Git.
 
 ## 3. Vector contract
 
-- Input: một chuỗi tiếng Việt không rỗng.
+- Input: a non-empty preference-text string (English in the MVP; the encoder is Unicode-aware).
 - Output: `torch.float32`, shape `[128]`.
 - Batch output: shape `[batch_size, 128]`.
-- Tất cả phần tử hữu hạn.
-- Vector được L2-normalize.
-- Cùng text và cùng artifact phải tạo cùng vector.
+- All elements are finite.
+- The vector is L2-normalized.
+- The same text with the same artifact must produce the same vector.
 
-Text rỗng bị từ chối bằng `ValueError` để Backend yêu cầu người dùng nhập
-lại hoặc sử dụng fallback được thống nhất riêng.
+Empty text is rejected with a `ValueError` so that the Backend can ask the user to
+re-enter it or use a separately agreed fallback.
 
 ## 4. Demo
 
@@ -49,13 +49,13 @@ lại hoặc sử dụng fallback được thống nhất riêng.
 python experiments/text_encoder_demo.py
 ```
 
-Demo encode ba câu sở thích tiếng Việt và in shape, dtype, trạng thái
-finite cùng norm. Test save/load contract nằm trong
+The demo encodes three English preference sentences and prints the shape, dtype, finite
+status and norm. The save/load contract test is in
 `tests/test_text_encoder.py`.
 
-## 5. Giới hạn
+## 5. Limitations
 
-Feature hashing nhận biết token và cụm từ giống nhau nhưng không hiểu hai
-câu đồng nghĩa. Nếu thay bằng PhoBERT hoặc Sentence Transformer, nhóm phải
-tăng `schema_version`, khai báo model name/revision và giữ nguyên nguyên
-tắc dimension cố định, deterministic inference và artifact validation.
+Feature hashing recognizes identical tokens and phrases but does not understand that two
+sentences are synonymous. If it is replaced by PhoBERT or a Sentence Transformer, the team must
+bump `schema_version`, declare the model name/revision and keep the principles of a
+fixed dimension, deterministic inference and artifact validation.

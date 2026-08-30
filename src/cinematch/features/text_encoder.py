@@ -1,9 +1,11 @@
-"""Deterministic Vietnamese text baseline for the week-one Hybrid demo.
+"""Deterministic preference text baseline for the week-one Hybrid demo.
 
 This module deliberately uses signed feature hashing instead of a large
 pretrained language model. It runs offline, has no fitted vocabulary and makes
-the text-vector contract easy for the group to inspect. It is a technical
-baseline, not the final semantic encoder for CineMatch.
+the text-vector contract easy for the group to inspect. The encoder is
+language-agnostic: text is NFC-normalized and tokenized with Unicode-aware
+word matching, so any Unicode input is handled. It is a technical baseline,
+not the final semantic encoder for CineMatch.
 """
 
 from __future__ import annotations
@@ -46,8 +48,8 @@ class TextEncoderConfig:
             raise ValueError("ngram_range must be positive and ordered")
 
 
-class VietnameseTextEncoder:
-    """Encode Vietnamese preference text into a fixed float32 vector."""
+class PreferenceTextEncoder:
+    """Encode preference text into a fixed float32 vector."""
 
     def __init__(self, config: TextEncoderConfig | None = None) -> None:
         self.config = config or TextEncoderConfig()
@@ -124,7 +126,7 @@ class VietnameseTextEncoder:
         return destination
 
     @classmethod
-    def load_artifact(cls, path: str | Path) -> "VietnameseTextEncoder":
+    def load_artifact(cls, path: str | Path) -> "PreferenceTextEncoder":
         """Recreate an encoder from a validated week-one artifact."""
 
         payload = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -140,3 +142,8 @@ class VietnameseTextEncoder:
             raise ValueError(f"text encoder artifact is missing: {sorted(missing)}")
         payload["ngram_range"] = tuple(payload["ngram_range"])
         return cls(TextEncoderConfig(**payload))
+
+
+# Backward-compatible alias. Keep it until every model artifact and import
+# that still references the old name has been checked and migrated.
+VietnameseTextEncoder = PreferenceTextEncoder

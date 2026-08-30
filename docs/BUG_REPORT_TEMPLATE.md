@@ -1,30 +1,30 @@
 # Bug Report Template
 
-## Tóm tắt
-<!-- Một câu mô tả lỗi -->
+## Summary
+<!-- One sentence describing the bug -->
 
 ## Module / Owner
 <!-- Data / AI Baseline / NCF / Group & Evaluation / Backend / Frontend / Testing -->
-Owner đề xuất:
+Suggested owner:
 
-## Mức độ nghiêm trọng
-- [ ] Chặn luồng chính (blocker)
-- [ ] Ảnh hưởng nhưng có workaround
-- [ ] Nhỏ / cosmetic
+## Severity
+- [ ] Blocks the main flow (blocker)
+- [ ] Has impact but a workaround exists
+- [ ] Minor / cosmetic
 
-## Môi trường
+## Environment
 - OS:
 - Python / Node version:
 - Branch / commit:
 
-## Các bước tái hiện
+## Steps to reproduce
 1.
 2.
 3.
 
-## Kết quả mong đợi
+## Expected result
 
-## Kết quả thực tế
-<!-- Kèm log lỗi, stack trace, ảnh chụp nếu có -->
+## Actual result
+<!-- Attach error logs, stack traces, screenshots if available -->
 
-## Ghi chú thêm
+## Additional notes

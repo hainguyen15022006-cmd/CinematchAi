@@ -6,7 +6,7 @@ from cinematch.features.hybrid_features import (
     HYBRID_SIDE_FEATURE_DIM,
     build_hybrid_side_features,
 )
-from cinematch.features.text_encoder import VietnameseTextEncoder
+from cinematch.features.text_encoder import PreferenceTextEncoder
 from cinematch.models.hybrid_ncf import HybridNCF
 
 
@@ -18,18 +18,18 @@ def train_hybrid_smoke():
     num_samples = 200
 
     # Week-one smoke data follows the real side-feature dimensions. The genre,
-    # year and history values are synthetic; the Vietnamese text vectors are
+    # year and history values are synthetic; the preference text vectors are
     # produced by the same deterministic encoder used by the demo.
     users = torch.randint(0, num_users, (num_samples,))
     items = torch.randint(0, num_items, (num_samples,))
     genres = torch.randint(0, 2, (num_samples, 19)).float()
     normalized_year = torch.rand(num_samples, 1)
     history_profile = torch.rand(num_samples, 19)
-    encoder = VietnameseTextEncoder()
+    encoder = PreferenceTextEncoder()
     preferences = [
-        "Thích phim hành động hài, có plot twist.",
-        "Thích phim tình cảm nhẹ nhàng.",
-        "Không thích phim kinh dị quá bạo lực.",
+        "I like action comedies with a plot twist.",
+        "I like light romantic films.",
+        "I do not like very violent horror films.",
     ]
     text_vectors = encoder.encode_batch(
         [preferences[index % len(preferences)] for index in range(num_samples)]

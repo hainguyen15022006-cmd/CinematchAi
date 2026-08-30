@@ -2,168 +2,168 @@
 
 ## 1. Dataset overview
 
-CineMatch sử dụng MovieLens 100K làm dữ liệu nền để
-huấn luyện và đánh giá các mô hình recommendation.
+CineMatch uses MovieLens 100K as the underlying data for
+training and evaluating the recommendation models.
 
-Dữ liệu rating được đọc từ `u.data` và có bốn cột:
-`user_id`, `movie_id`, `rating` và `timestamp`.
+The rating data is read from `u.data` and has four columns:
+`user_id`, `movie_id`, `rating` and `timestamp`.
 
-| Thuộc tính | Giá trị |
+| Attribute | Value |
 |---|---:|
-| Ratings | 100.000 |
+| Ratings | 100,000 |
 | Users | 943 |
-| Movies | 1.682 |
+| Movies | 1,682 |
 | Minimum rating | 1 |
 | Maximum rating | 5 |
-| Mean rating | 3,5299 |
+| Mean rating | 3.5299 |
 
 ## 2. Data quality
 
-Pipeline thực hiện kiểm tra schema, missing values,
-rating range, user ID, movie ID và timestamp.
+The pipeline checks the schema, missing values,
+rating range, user IDs, movie IDs and timestamps.
 
-Kết quả:
+Results:
 
 - Missing values: 0.
-- Rating ngoài khoảng 1-5: 0.
+- Ratings outside the 1-5 range: 0.
 - Exact duplicate rows: 0.
 - Duplicate user-movie rows: 0.
-- User ID không hợp lệ: 0.
-- Movie ID không hợp lệ: 0.
-- Timestamp không hợp lệ: 0.
+- Invalid user IDs: 0.
+- Invalid movie IDs: 0.
+- Invalid timestamps: 0.
 
-Dữ liệu rating đạt các điều kiện chất lượng cơ bản
-để chuyển sang bước preprocessing.
+The rating data meets the basic quality conditions
+required to move on to the preprocessing step.
 
 ## 3. Rating distribution
 
 | Rating | Count | Percentage |
 |---:|---:|---:|
-| 1 | 6.110 | 6,11% |
-| 2 | 11.370 | 11,37% |
-| 3 | 27.145 | 27,15% |
-| 4 | 34.174 | 34,17% |
-| 5 | 21.201 | 21,20% |
+| 1 | 6,110 | 6.11% |
+| 2 | 11,370 | 11.37% |
+| 3 | 27,145 | 27.15% |
+| 4 | 34,174 | 34.17% |
+| 5 | 21,201 | 21.20% |
 
-Rating 4 xuất hiện nhiều nhất. Tổng số rating từ 4
-trở lên là 55.375, tương đương khoảng 55,38%.
+Rating 4 is the most frequent. The total number of ratings of 4
+or higher is 55,375, or about 55.38%.
 
-Dữ liệu có xu hướng nghiêng về các rating tích cực.
-CineMatch sử dụng rating từ 4 trở lên làm positive
-interaction trong ranking evaluation.
+The data is skewed towards positive ratings.
+CineMatch uses ratings of 4 or higher as positive
+interactions in the ranking evaluation.
 
 ## 4. User interaction distribution
 
-| Thống kê | Ratings per user |
+| Statistic | Ratings per user |
 |---|---:|
 | Minimum | 20 |
 | Maximum | 737 |
-| Mean | 106,04 |
+| Mean | 106.04 |
 | Median | 65 |
 
-Mean lớn hơn median cho thấy một số user có số lượng
-rating rất lớn. Tuy nhiên, mỗi user có ít nhất 20 rating,
-đủ để thực hiện per-user temporal split.
+The mean being larger than the median shows that some users have
+a very large number of ratings. However, every user has at least 20
+ratings, which is enough to perform a per-user temporal split.
 
 ## 5. Movie interaction distribution
 
-| Thống kê | Ratings per movie |
+| Statistic | Ratings per movie |
 |---|---:|
 | Minimum | 1 |
 | Maximum | 583 |
-| Mean | 59,45 |
+| Mean | 59.45 |
 | Median | 27 |
 
-Phân bố rating theo phim có tính long-tail. Một số phim
-nhận nhiều rating, trong khi nhiều phim chỉ có ít tương tác.
-Điều này có thể gây popularity bias và làm model học kém
-đối với các phim ít phổ biến.
+The distribution of ratings per movie is long-tailed. Some movies
+receive many ratings, while many movies have only a few interactions.
+This can cause popularity bias and make the model learn poorly
+for less popular movies.
 
 ## 6. Matrix sparsity
 
-Số cặp user-phim có thể có:
+Number of possible user-movie pairs:
 
 ```text
-943 × 1.682 = 1.586.126
+943 × 1,682 = 1,586,126
 ```
 
-Trong 1.586.126 tương tác có thể có, tập dữ liệu chỉ chứa
-100.000 rating. Mật độ là 6,3047% và độ thưa là 93,6953%.
-Đây là đặc trưng bình thường của dữ liệu recommendation và
-là lý do các mô hình MF, GMF và NCF sử dụng embedding.
+Out of 1,586,126 possible interactions, the dataset contains only
+100,000 ratings. The density is 6.3047% and the sparsity is 93.6953%.
+This is a normal characteristic of recommendation data and is
+the reason the MF, GMF and NCF models use embeddings.
 
 ## 7. Movie metadata quality
 
-Catalog `u.item` chứa 1.682 phim và tất cả movie ID xuất hiện
-trong rating đều tồn tại trong catalog.
+The `u.item` catalog contains 1,682 movies, and every movie ID that appears
+in the ratings exists in the catalog.
 
-| Kiểm tra | Kết quả |
+| Check | Result |
 |---|---:|
-| Thiếu tiêu đề | 0 |
-| Thiếu ngày phát hành | 1 |
-| Thiếu IMDb URL | 3 |
-| Phim có thể loại `unknown` | 2 |
-| Phim có nhiều hơn một thể loại | 849 |
-| Số thể loại trung bình mỗi phim | 1,72 |
-| Rating trước ngày phát hành ghi trong catalog | 231 |
-| Phim có bất nhất thời gian | 24 |
+| Missing title | 0 |
+| Missing release date | 1 |
+| Missing IMDb URL | 3 |
+| Movies with the `unknown` genre | 2 |
+| Movies with more than one genre | 849 |
+| Mean number of genres per movie | 1.72 |
+| Ratings before the release date recorded in the catalog | 231 |
+| Movies with a temporal inconsistency | 24 |
 
-IMDb URL chỉ là metadata hiển thị và không được sử dụng để
-huấn luyện. Phim thiếu ngày phát hành hoặc có thể loại
-`unknown` vẫn được giữ vì chúng có tương tác rating hợp lệ.
+The IMDb URL is display metadata only and is not used for
+training. Movies with a missing release date or with the `unknown`
+genre are kept because they have valid rating interactions.
 
-Ngày phát hành trong `u.item` không hoàn toàn nhất quán với
-timestamp của rating. Vì vậy, pipeline không dùng ngày phát
-hành làm điều kiện xóa rating hoặc lọc phim. Temporal split
-chỉ dựa trên timestamp của rating.
+The release dates in `u.item` are not fully consistent with the
+rating timestamps. Therefore, the pipeline does not use the release
+date as a condition for removing ratings or filtering movies. The temporal
+split is based only on the rating timestamps.
 
-Trong catalog processed, `release_date` được parse sang kiểu
-ngày, `release_year` là số nguyên cho phép thiếu và
-`release_date_missing` ghi rõ bản ghi nào thiếu ngày. Ngày
-phát hành hiện chỉ là metadata phụ, không phải đầu vào chính
-của MF, GMF hoặc NCF.
+In the processed catalog, `release_date` is parsed to a date
+type, `release_year` is a nullable integer and
+`release_date_missing` records which entries are missing the date. The
+release date is currently only secondary metadata, not a primary input
+of MF, GMF or NCF.
 
 ## 8. Data processing policy
 
-- Không chỉnh sửa các file trong `data/raw`.
-- Không xóa rating dựa trên ngày phát hành.
-- Không tự điền ngày phát hành hoặc IMDb URL còn thiếu.
-- Giữ đủ 19 cột thể loại, bao gồm `unknown`.
-- Dùng timestamp của rating cho per-user temporal split.
-- Lưu dữ liệu đã biến đổi trong `data/processed`.
+- Do not modify the files in `data/raw`.
+- Do not remove ratings based on the release date.
+- Do not fill in missing release dates or IMDb URLs.
+- Keep all 19 genre columns, including `unknown`.
+- Use the rating timestamp for the per-user temporal split.
+- Store the transformed data in `data/processed`.
 
-Các quyết định trên giúp pipeline có thể tái hiện và tránh
-đưa giả định không kiểm chứng vào dữ liệu gốc.
+These decisions keep the pipeline reproducible and avoid
+introducing unverified assumptions into the original data.
 
 ## 9. Per-user temporal split
 
-Sau khi ánh xạ user và movie ID, rating của từng user được
-sắp xếp tăng dần theo `timestamp`. `movie_id` được dùng làm
-khóa phụ khi hai rating có cùng timestamp để kết quả luôn
-có thể tái hiện.
+After mapping user and movie IDs, each user's ratings are
+sorted in ascending order of `timestamp`. `movie_id` is used as a
+secondary key when two ratings share the same timestamp so that the
+result is always reproducible.
 
-Mỗi user được chia gần theo tỷ lệ:
+Each user is split approximately by the ratio:
 
-- 80% tương tác cũ nhất cho train.
-- 10% tiếp theo cho validation.
-- 10% mới nhất cho test.
+- The oldest 80% of interactions for train.
+- The next 10% for validation.
+- The newest 10% for test.
 
-Vì số tương tác của từng user là số nguyên và không phải lúc
-nào cũng chia hết theo tỷ lệ 80/10/10, pipeline dùng phương
-pháp largest remainder để phân bổ phần dư. Kết quả trên toàn
-bộ MovieLens 100K là:
+Because each user's number of interactions is an integer and is not
+always divisible according to the 80/10/10 ratio, the pipeline uses the
+largest remainder method to allocate the remainder. The result over the
+whole of MovieLens 100K is:
 
 | Partition | Rows | Percentage |
 |---|---:|---:|
-| Train | 80.014 | 80,014% |
-| Validation | 10.132 | 10,132% |
-| Test | 9.854 | 9,854% |
-| Total | 100.000 | 100% |
+| Train | 80,014 | 80.014% |
+| Validation | 10,132 | 10.132% |
+| Test | 9,854 | 9.854% |
+| Total | 100,000 | 100% |
 
-Cả ba partition đều chứa đủ 943 user. Pipeline kiểm tra mỗi
-tương tác xuất hiện đúng một lần và không bị thất lạc hoặc
-trùng giữa các partition. Ngày phát hành phim không tham gia
-vào quá trình chia dữ liệu.
+All three partitions contain all 943 users. The pipeline checks that each
+interaction appears exactly once and is neither lost nor
+duplicated across partitions. Movie release dates play no part
+in the data split.
 
 ## 10. Post-split audit and cold-start
 
@@ -198,30 +198,29 @@ protocol and candidate construction rules.
 
 ## 11. Data handoff and known limitations
 
-Nguồn cấu hình dùng chung là `configs/cinematch.yaml`. Pipeline
-kiểm tra dataset phải có đúng 100.000 rating, 943 user và
-1.682 phim trước khi tạo dữ liệu model-ready.
+The shared configuration source is `configs/cinematch.yaml`. The pipeline
+verifies that the dataset has exactly 100,000 ratings, 943 users and
+1,682 movies before producing model-ready data.
 
-Phần Data bàn giao cho AI gồm:
+The Data handoff to AI consists of:
 
-- `train.csv`, `validation.csv` và `test.csv`.
-- `movies.csv` với metadata và 19 cột thể loại.
-- `id_mappings.json` để encode/decode ID ổn định.
-- `split_audit.json` ghi kết quả kiểm tra sau split.
-- Loader có schema rõ ràng trong `cinematch.data.io`.
+- `train.csv`, `validation.csv` and `test.csv`.
+- `movies.csv` with metadata and 19 genre columns.
+- `id_mappings.json` for stable ID encoding/decoding.
+- `split_audit.json` recording the post-split check results.
+- A loader with an explicit schema in `cinematch.data.io`.
 
-MovieLens 100K không cung cấp poster hiện đại hoặc thời lượng
-phim. Vì vậy, poster và ràng buộc thời lượng của giao diện phải
-được bổ sung từ một nguồn metadata khác; không được tự bịa giá
-trị trong data training. Văn bản sở thích tiếng Việt là dữ liệu
-onboarding do hệ thống thu thập sau này, không có sẵn trong
-MovieLens 100K.
+MovieLens 100K does not provide modern posters or movie
+runtimes. Therefore, the posters and runtime constraints of the interface must
+be supplemented from another metadata source; values must not be fabricated
+in the training data. Free-text user preferences are onboarding data
+collected by the system later and are not available in MovieLens 100K.
 
-Pipeline hiện chưa tạo negative samples. Việc negative sampling
-phụ thuộc objective và evaluation protocol, nên phải được người
-làm AI và Evaluation thống nhất, đồng thời dùng cùng candidate
-set cho MF, GMF và NCF.
+The pipeline does not yet generate negative samples. Negative sampling
+depends on the objective and the evaluation protocol, so it must be agreed
+between the AI and Evaluation owners, while using the same candidate
+set for MF, GMF and NCF.
 
-Với các giới hạn trên, dữ liệu hiện tại đủ để huấn luyện và so
-sánh baseline, MF, GMF và NCF trên explicit rating; đồng thời
-cung cấp genre features cho Hybrid NCF.
+Given the limitations above, the current data is sufficient to train and
+compare the baseline, MF, GMF and NCF on explicit ratings, while also
+providing genre features for Hybrid NCF.
