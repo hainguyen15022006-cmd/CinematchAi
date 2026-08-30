@@ -20,7 +20,7 @@
 - [ ] Không chứa `data/raw`, `data/processed`, `outputs/`, checkpoint nặng, `.env` thật, `node_modules`, cache
 - [ ] Có test hoặc bằng chứng kiểm tra (log/ảnh chụp/kết quả pytest)
 - [ ] Tự giải thích được từng hàm lõi trong PR này
-- [ ] Đã gắn reviewer đúng theo ma trận review
+- [ ] Đã gắn ít nhất một reviewer phụ trách module liên quan đến thay đổi trong PR này
 
 ## Reviewer đề xuất
-<!-- theo ma trận review trong docs/... -->
+<!-- Ghi tên người phụ trách module bị ảnh hưởng bởi PR này (ví dụ: PR sửa Backend -> gắn người phụ trách Backend hiện tại). Vai trò từng module có thể thay đổi theo tuần, nên chọn reviewer theo module thực tế thay vì theo tên cố định. -->

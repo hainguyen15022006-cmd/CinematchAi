@@ -15,18 +15,18 @@ Ghi kết quả PASS/FAIL + ảnh chụp hoặc log vào cột "Kết quả" m�
 | ID | Bước | Kỳ vọng | Kết quả |
 |---|---|---|---|
 | AUTH-01 | Đăng ký tài khoản mới qua UI | Tạo thành công, chuyển hướng đúng | PASS |
-| AUTH-02 | Đăng ký với email đã tồn tại | Báo lỗi rõ ràng, không crash | Chưa test — cần làm ở lượt sau |
+| AUTH-02 | Đăng ký với email đã tồn tại | Báo lỗi rõ ràng, không crash | PASS — lần 2 trả 400, message "Email already registered" |
 | AUTH-03 | Đăng nhập đúng thông tin | Nhận token, lưu vào client | PASS |
 | AUTH-04 | Đăng nhập sai mật khẩu | Báo lỗi rõ ràng cho người dùng | PASS — hiển thị "invalid password" |
-| AUTH-05 | Gọi API cần auth mà không có token | Trả 401, không lộ dữ liệu | Chưa test — cần làm ở lượt sau |
+| AUTH-05 | Gọi API cần auth mà không có token | Trả 401, không lộ dữ liệu | PASS — trả 401, message "Missing or malformed token" |
 
 ## 3. Movies & Ratings
 | ID | Bước | Kỳ vọng | Kết quả |
 |---|---|---|---|
 | RATE-01 | Xem danh sách phim trên onboarding | Hiển thị đủ poster/tên/thể loại | PASS |
 | RATE-02 | Gửi rating hợp lệ (1-5) | Lưu thành công (`POST /ratings` → 201 Created) | PASS |
-| RATE-03 | Gửi rating ngoài khoảng | Bị từ chối, thông báo lỗi | Chưa test — cần làm ở lượt sau |
-| RATE-04 | Gửi rating khi chưa đăng nhập | Bị chặn / yêu cầu đăng nhập | Chưa test — cần làm ở lượt sau |
+| RATE-03 | Gửi rating ngoài khoảng | Bị từ chối, thông báo lỗi | PASS |
+| RATE-04 | Gửi rating khi chưa đăng nhập | Bị chặn / yêu cầu đăng nhập | PASS |
 
 ## 4. Mock Recommendation
 | ID | Bước | Kỳ vọng | Kết quả |
@@ -39,7 +39,7 @@ Ghi kết quả PASS/FAIL + ảnh chụp hoặc log vào cột "Kết quả" m�
 | ID | Bước | Kỳ vọng | Kết quả |
 |---|---|---|---|
 | E2E-01 | Đăng ký → rating → xem mock Top 10 | Toàn bộ luồng không lỗi console/network | PASS |
-| E2E-02 | Reload trang giữa luồng | Không mất trạng thái đăng nhập | Chưa test — cần làm ở lượt sau |
+| E2E-02 | Reload trang giữa luồng | Không mất trạng thái đăng nhập | PASS |
 
 ## Bug tìm thấy trong quá trình test
 
