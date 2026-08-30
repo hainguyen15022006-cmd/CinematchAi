@@ -15,7 +15,7 @@ thiếu, gây nhầm lẫn hoặc lỗi thật — không dùng cache/setup cũ 
 | Hạng mục | Trạng thái |
 |---|---|
 | Clone + cài Python deps | FAIL lần đầu (bug `httpx2`) → **đã sửa (RESOLVED)** trong PR này |
-| Chạy pytest | PASS (sau khi tải MovieLens 100K; 3 test raw-data skip trên CI, không skip khi chạy thủ công có data) |
+| Chạy pytest | PASS (sau khi tải và xử lý MovieLens 100K; 4 test phụ thuộc data artifact skip trên CI, không skip khi chạy thủ công có data) |
 | Chạy backend (uvicorn) | PASS |
 | Chạy frontend (npm) | PASS (sau khi cài thêm Node.js — máy sạch chưa có sẵn) |
 | Luồng end-to-end (đăng ký → rating → mock Top 10) | PASS |
@@ -53,12 +53,13 @@ trước khi `npm install` chạy được.
 README, giống như đã ghi yêu cầu Python 3.12.
 
 ### 4. MovieLens 100K không tự tải, cần chạy script riêng
-3 test (`test_data_pipeline.py`, `test_mapping.py`, `test_splitting.py`) tự SKIP nếu
-chưa có `data/raw/ml-100k/u.data` — đây là thiết kế đúng, không phải bug, và CI hiện
-tại cũng không tải MovieLens nên các test này luôn skip trên CI (xem `TEST_PLAN.md`).
-README nên nhắc rõ hơn là **bắt buộc** chạy `python scripts/download_data.py` trước
-khi chạy full test suite thủ công, nếu không người mới dễ hiểu nhầm là test đã pass
-hết dù thực ra bị skip.
+4 test (`test_candidates.py`, `test_data_pipeline.py`, `test_mapping.py`,
+`test_splitting.py`) tự SKIP nếu thiếu raw hoặc processed data artifact — đây là thiết
+kế đúng, không phải bug. CI hiện tại không tải và không xử lý MovieLens nên các test
+này luôn skip trên CI (xem `TEST_PLAN.md`). README nên nhắc rõ hơn là phải chạy cả
+`python scripts/download_data.py` và `python scripts/prepare_data.py` trước khi chạy
+full test suite thủ công; nếu không, người mới dễ hiểu nhầm là test đã pass hết dù
+thực ra có test bị skip.
 
 ## Kết luận
 Luồng end-to-end (Data → Backend → Frontend → Mock Top 10) chạy được trên máy sạch.

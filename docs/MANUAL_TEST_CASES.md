@@ -6,8 +6,8 @@ Ghi kết quả PASS/FAIL + ảnh chụp hoặc log vào cột "Kết quả" m�
 | ID | Bước | Kỳ vọng | Kết quả |
 |---|---|---|---|
 | SETUP-01 | Clone repo vào thư mục mới, làm theo README từ đầu | Không bước nào lỗi/thiếu hướng dẫn | PASS (đã fix riêng vấn đề PowerShell venv activation — xem ghi chú cuối file) |
-| SETUP-02 | `python -m pip install -e ".[dev]"` | Cài đặt thành công, không lỗi dependency | FAIL trên máy sạch — xem Bug #1 (`httpx2`) cuối file |
-| SETUP-03 | `python -m pytest -v` | Toàn bộ test pass | PASS sau khi tải MovieLens 100K (`scripts/download_data.py`); 3 test ban đầu SKIP vì thiếu data, không phải lỗi |
+| SETUP-02 | `python -m pip install -e ".[dev]"` | Cài đặt thành công, không lỗi dependency | PASS sau khi sửa `httpx2` thành `httpx`; lần chạy đầu tiên FAIL và được lưu tại Bug #1 |
+| SETUP-03 | `python -m pytest -v` | Toàn bộ test pass | PASS sau khi tải và xử lý MovieLens 100K; 4 test ban đầu SKIP vì thiếu data artifact, không phải lỗi |
 | SETUP-04 | `cp .env.example .env && python scripts/seed_movies.py && uvicorn app.main:app --reload` | Server chạy, `/health` trả 200 | PASS |
 | SETUP-05 | `cd frontend && npm install && npm run dev` | Frontend chạy ở cổng 5173 | PASS |
 
@@ -23,7 +23,7 @@ Ghi kết quả PASS/FAIL + ảnh chụp hoặc log vào cột "Kết quả" m�
 ## 3. Movies & Ratings
 | ID | Bước | Kỳ vọng | Kết quả |
 |---|---|---|---|
-| RATE-01 | Xem danh sách phim trên onboarding | Hiển thị đủ poster/tên/thể loại | PASS |
+| RATE-01 | Xem danh sách phim trên onboarding | Hiển thị card phim, tên, thể loại và poster placeholder trong MVP | PASS |
 | RATE-02 | Gửi rating hợp lệ (1-5) | Lưu thành công (`POST /ratings` → 201 Created) | PASS |
 | RATE-03 | Gửi rating ngoài khoảng | Bị từ chối, thông báo lỗi | PASS |
 | RATE-04 | Gửi rating khi chưa đăng nhập | Bị chặn / yêu cầu đăng nhập | PASS |
@@ -47,7 +47,7 @@ Ghi kết quả PASS/FAIL + ảnh chụp hoặc log vào cột "Kết quả" m�
 - **Mức độ:** Blocker cho clean-machine setup
 - **Bước tái hiện:** Clone repo mới → `python -m pip install -e ".[dev]"` → `python -m pytest -v`
 - **Kết quả thực tế:** `tests/test_api_basic.py` lỗi `ModuleNotFoundError: httpx` vì `pyproject.toml` khai `httpx2>=2,<3` — đây là package khác trên PyPI, không cung cấp module `httpx` mà FastAPI `TestClient` cần.
-- **Đề xuất fix:** Đổi `httpx2` → `httpx` trong dev-dependencies của `pyproject.toml`.
+- **Fix đã áp dụng:** Đổi `httpx2` → `httpx` trong dev-dependencies của `pyproject.toml`.
 - **Owner đề xuất:** Chúc (Backend) hoặc người quản lý `pyproject.toml`.
 
 ## Ghi chú môi trường

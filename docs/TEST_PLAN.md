@@ -4,13 +4,15 @@ Phạm vi: kiểm tra 6 mảng theo đúng cấu trúc code hiện có trên rep
 NCF/Hybrid, Group Recommendation & Evaluation, Backend API, Frontend).
 
 **Lưu ý về CI:** GitHub Actions (`ci.yml`) chỉ chạy `pytest` trên dữ liệu synthetic có
-sẵn trong code test, **không tự tải MovieLens 100K**. Do đó 3 test sau sẽ tự SKIP trên
-CI (không phải fail): `tests/test_data_pipeline.py`, `tests/test_mapping.py`,
-`tests/test_splitting.py`. Để chạy đầy đủ bộ test Data (không skip), phải chạy thủ
-công trên máy đã có sẵn raw data:
+sẵn trong code test, **không tự tải hoặc xử lý MovieLens 100K**. Do đó 4 test sau sẽ
+tự SKIP trên CI (không phải fail): `tests/test_candidates.py`,
+`tests/test_data_pipeline.py`, `tests/test_mapping.py` và
+`tests/test_splitting.py`. Để chạy toàn bộ test mà không skip, phải tải và xử lý dữ
+liệu trước:
 ```
 python scripts/download_data.py
-python -m pytest -v tests/test_data_pipeline.py tests/test_mapping.py tests/test_splitting.py
+python scripts/prepare_data.py
+python -m pytest -v
 ```
 
 ## 1. Data (owner: Hải Anh — automated qua pytest)
@@ -28,7 +30,8 @@ Test hiện có: `tests/test_dataset.py`, `tests/test_data_pipeline.py`,
 
 Manual bổ sung: chạy `scripts/prepare_data.py` rồi `scripts/audit_splits.py` trên máy
 đã tải raw data, xác nhận `outputs/eda/split_audit.json` không có cảnh báo nghiêm trọng.
-(3 test raw-data ở trên bị CI skip — phần này là bằng chứng thay thế chạy thủ công.)
+(4 test phụ thuộc data artifact ở trên bị CI skip — phần này là bằng chứng thay thế
+chạy thủ công.)
 
 ## 2. AI Baseline (owner: Thành — automated qua pytest)
 Test hiện có: `tests/test_baselines.py`
@@ -51,13 +54,17 @@ Test hiện có: `tests/test_ncf.py`, `tests/test_hybrid_ncf.py`, `tests/test_te
 | Hybrid side-features | `cinematch.features.hybrid_features.build_hybrid_side_features` | Kích thước feature khớp `HYBRID_SIDE_FEATURE_DIM` |
 
 ## 4. Group Recommendation & Evaluation (owner: Sơn — automated qua pytest)
-Test hiện có: `tests/test_group.py`, `tests/test_ranking.py`, `tests/test_group_response.py`
+Test hiện có: `tests/test_group.py`, `tests/test_ranking.py`,
+`tests/test_candidates.py`, `tests/test_model_scores.py`,
+`tests/test_group_response.py`
 
 | Hạng mục | Cách kiểm tra | Kỳ vọng |
 |---|---|---|
 | Average / Least Misery / Average Without Misery | `test_group.py` | Khớp kết quả tính tay theo `docs/GROUP_RECOMMENDATION_THEORY.md` |
 | Disagreement score | `test_group.py::disagreement_score` | Đúng công thức, không âm |
 | Ranking metrics (Recall@K, NDCG@K, Hit Rate@K, Coverage) | `test_ranking.py` | Khớp ví dụ tính tay |
+| Candidate protocol | `test_candidates.py` | Không lấy seen item làm negative; seed tái lập được |
+| Model-to-Group adapter | `test_model_scores.py` | Movie ID và score từng thành viên được căn đúng thứ tự |
 | Group response contract | `test_group_response.py` | Response chứa đủ field bắt buộc (group_score, minimum_score, disagreement, member_scores, explanations, fairness fields) |
 
 ## 5. Backend API (owner: Chúc — automated qua pytest + manual qua Swagger)
