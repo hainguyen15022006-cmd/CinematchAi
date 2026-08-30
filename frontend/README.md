@@ -1,17 +1,17 @@
-# CineMatch Frontend — Dương (Tuần 1)
+# CineMatch Frontend — Dương (Week 1)
 
-Frontend React + TypeScript + Vite cho CineMatch, bám theo Backend API/Recommendation Contract hiện có.
+React + TypeScript + Vite frontend for CineMatch, following the existing Backend API/Recommendation Contract.
 
-## Phạm vi hoàn thành
+## Completed scope
 
-- React + TypeScript + Vite, chạy mặc định tại `http://localhost:5173`.
-- Register/Login bằng API thật; JWT được lưu ở `localStorage` và tự thêm vào header `Authorization`.
-- Onboarding lấy phim từ `GET /movies`, chấm 1–5 sao và gửi `POST /ratings`.
-- Trang Top 10 gọi `POST /recommend/mock` và hiển thị đủ `group_score`, `minimum_score`, `disagreement`, `member_scores`, `misery_warning`, `explanations`.
-- Trang phòng nhóm dùng API thật để tạo/join room và toggle ready.
-- Có loading state, error state, success feedback và route cần đăng nhập.
+- React + TypeScript + Vite, running by default at `http://localhost:5173`.
+- Register/Login via the real API; the JWT is stored in `localStorage` and automatically added to the `Authorization` header.
+- Onboarding fetches movies from `GET /movies`, rates them 1–5 stars and sends `POST /ratings`.
+- The Top 10 page calls `POST /recommend/mock` and displays all of `group_score`, `minimum_score`, `disagreement`, `member_scores`, `misery_warning`, `explanations`.
+- The group room page uses the real API to create/join a room and toggle ready.
+- Includes loading state, error state, success feedback and login-required routes.
 
-## Chạy frontend
+## Running the frontend
 
 ```bash
 cd frontend
@@ -19,30 +19,30 @@ npm install
 npm run dev
 ```
 
-Mở `http://localhost:5173`.
+Open `http://localhost:5173`.
 
 ## Backend
 
-Backend cần chạy ở `http://127.0.0.1:8000` (hoặc tạo `.env` từ `.env.example` và đổi `VITE_API_BASE_URL`).
+The Backend must be running at `http://127.0.0.1:8000` (or create `.env` from `.env.example` and change `VITE_API_BASE_URL`).
 
-Ví dụ chạy backend từ root repo:
+Example of running the backend from the repo root:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Nếu database chưa có movie catalog, làm theo `docs/BACKEND_API.md` của Backend trước khi test `/movies` và `/ratings`.
+If the database does not yet contain the movie catalog, follow the Backend's `docs/BACKEND_API.md` before testing `/movies` and `/ratings`.
 
-## Luồng demo đề xuất
+## Suggested demo flow
 
-1. Mở `/register`, tạo tài khoản.
-2. Sau khi đăng ký thành công, app tự login và chuyển tới `/onboarding`.
-3. Chấm ít nhất 5 phim. Mỗi click sao gọi API rating thật.
-4. Mở `/recommendations`, chọn một trong 3 strategy và bấm **Tạo Top 10**.
-5. Kiểm tra các trường fairness/explanation của từng phim.
-6. Có thể mở `/room` để tạo phòng, tham gia phòng hoặc đổi trạng thái ready.
+1. Open `/register` and create an account.
+2. After successful registration, the app logs in automatically and navigates to `/onboarding`.
+3. Rate at least 5 movies. Each star click calls the real rating API.
+4. Open `/recommendations`, choose one of the 3 strategies and click **Generate Top 10**.
+5. Check the fairness/explanation fields for each movie.
+6. Optionally open `/room` to create a room, join a room or change the ready status.
 
-## API contract frontend đang dùng
+## API contract the frontend is using
 
 - `POST /auth/register`
 - `POST /auth/login`
@@ -55,15 +55,15 @@ Nếu database chưa có movie catalog, làm theo `docs/BACKEND_API.md` của Ba
 - `POST /rooms/{code}/join`
 - `POST /rooms/{id}/ready`
 
-`movie_id` khi gửi rating/recommendation là **MovieLens ID**, không phải khóa database nội bộ.
+The `movie_id` sent with ratings/recommendations is the **MovieLens ID**, not the internal database key.
 
-## Build kiểm tra trước Pull Request
+## Build check before a Pull Request
 
 ```bash
 npm run build
 ```
 
-Trước khi commit:
+Before committing:
 
 ```bash
 git status

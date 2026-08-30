@@ -58,3 +58,7 @@ Thumbs.db
 !.vscode/settings.json
 .idea/
 *.swp
+
+# Local AI agent skills and design tooling (not part of the project)
+.agents/
+design-system/

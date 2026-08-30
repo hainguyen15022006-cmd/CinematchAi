@@ -1,40 +1,40 @@
-# Kiểm thử tích hợp Frontend–Backend tuần 1
+# Frontend–Backend Integration Testing, Week 1
 
-Tài liệu này ghi lại cách ghép và kiểm chứng hai phần:
+This document records how the two parts were merged and verified:
 
-- Backend nền: `codex/backend-recommendation-schema`.
+- Base Backend: `codex/backend-recommendation-schema`.
 - Frontend: `feature/frontend-duong`.
-- Nhánh kiểm thử: `integration/fe-be-week1`.
+- Test branch: `integration/fe-be-week1`.
 
-Nhánh integration chỉ dùng để kiểm thử chung; không thay thế nhánh cá nhân
-của Chúc hoặc Dương và không tự động thay đổi `main`.
+The integration branch is used only for joint testing; it does not replace the
+personal branches of Chúc or Dương and does not automatically change `main`.
 
-## 1. Quan hệ giữa schema Backend và type Frontend
+## 1. Relationship between Backend schemas and Frontend types
 
-Backend là nguồn định nghĩa contract:
+The Backend is the source of the contract definition:
 
 - Pydantic schemas: `app/schemas/`.
 - API documentation: `docs/BACKEND_API.md`.
 - Group Recommendation contract: `docs/RECOMMENDATION_CONTRACT.md`.
-- OpenAPI khi server chạy: `http://127.0.0.1:8000/openapi.json`.
+- OpenAPI while the server is running: `http://127.0.0.1:8000/openapi.json`.
 
-Frontend ánh xạ contract sang TypeScript tại:
+The Frontend maps the contract to TypeScript at:
 
 ```text
 frontend/src/types/index.ts
 ```
 
-Frontend gọi endpoint qua:
+The Frontend calls endpoints via:
 
 ```text
 frontend/src/services/api.ts
 ```
 
-Quy ước quan trọng: `movie_id` trong request/response là ID gốc
-MovieLens. `movies.id` là khóa nội bộ database và không được Frontend sử
-dụng thay cho MovieLens ID.
+Important convention: `movie_id` in requests/responses is the original
+MovieLens ID. `movies.id` is the internal database key and is not used by the
+Frontend in place of the MovieLens ID.
 
-## 2. Cách tạo nhánh tích hợp
+## 2. How the integration branch was created
 
 ```bash
 git fetch origin
@@ -44,11 +44,11 @@ git merge --no-ff origin/feature/frontend-duong \
   -m "merge: integrate frontend and backend week 1"
 ```
 
-Hai nhánh đã merge tự động, không có conflict.
+The two branches merged automatically with no conflicts.
 
-## 3. Chạy Backend
+## 3. Running the Backend
 
-Từ thư mục gốc repository:
+From the repository root directory:
 
 ```bash
 source .venv/bin/activate
@@ -59,12 +59,12 @@ python scripts/seed_movies.py
 uvicorn app.main:app --reload
 ```
 
-Backend chạy tại `http://127.0.0.1:8000`; Swagger nằm tại
+The Backend runs at `http://127.0.0.1:8000`; Swagger is at
 `http://127.0.0.1:8000/docs`.
 
-## 4. Chạy Frontend
+## 4. Running the Frontend
 
-Mở Terminal khác:
+Open another Terminal:
 
 ```bash
 cd frontend
@@ -72,32 +72,32 @@ npm ci
 npm run dev
 ```
 
-Frontend chạy tại `http://localhost:5173` và đọc Backend URL từ
-`VITE_API_BASE_URL`. Giá trị mặc định là `http://127.0.0.1:8000`.
+The Frontend runs at `http://localhost:5173` and reads the Backend URL from
+`VITE_API_BASE_URL`. The default value is `http://127.0.0.1:8000`.
 
-## 5. Luồng đã kiểm chứng
+## 5. Verified flow
 
-| Bước trên Frontend | Request thật tới Backend | Kết quả |
+| Step on the Frontend | Real request to the Backend | Result |
 |---|---|---|
-| Đăng nhập | `POST /auth/login` | `200`, nhận JWT |
-| Mở onboarding | `GET /movies?limit=50&skip=0` | `200`, nhận 50 phim |
-| Chấm Toy Story 4 sao | `POST /ratings` | `201`, rating được lưu |
-| Tạo phòng | `POST /rooms` | `201`, nhận room code |
-| Bấm Ready | `POST /rooms/{id}/ready` | `200`, trạng thái `READY` |
-| Làm mới lobby | `GET /rooms/{code}` | `200`, nhận member list |
-| Tạo Top 10 | `POST /recommend/mock` | `200`, nhận 10 phim |
+| Log in | `POST /auth/login` | `200`, JWT received |
+| Open onboarding | `GET /movies?limit=50&skip=0` | `200`, 50 movies received |
+| Rate Toy Story 4 stars | `POST /ratings` | `201`, rating saved |
+| Create room | `POST /rooms` | `201`, room code received |
+| Click Ready | `POST /rooms/{id}/ready` | `200`, status `READY` |
+| Refresh lobby | `GET /rooms/{code}` | `200`, member list received |
+| Generate Top 10 | `POST /recommend/mock` | `200`, 10 movies received |
 
-Kết quả Top 10 đã hiển thị thành công:
+The Top 10 result was displayed successfully:
 
 - `group_score`, `minimum_score`, `disagreement`;
-- `member_scores` của ba thành viên minh họa;
+- `member_scores` of the three illustrative members;
 - `misery_warning`;
-- danh sách `explanations`.
+- the `explanations` list.
 
-`POST /recommend/mock` vẫn dùng điểm dự đoán giả của tuần 1. Auth, movie
-catalog, rating, room và ready đã chạy với Backend/database thật.
+`POST /recommend/mock` still uses the week 1 fake predicted scores. Auth, movie
+catalog, rating, room and ready ran against the real Backend/database.
 
-## 6. Lệnh kiểm tra trước khi merge
+## 6. Checks to run before merging
 
 Backend:
 
@@ -112,20 +112,20 @@ cd frontend
 npm run build
 ```
 
-Kết quả kiểm tra của nhánh integration:
+Check results for the integration branch:
 
 ```text
 Backend: 70 passed
-Frontend: TypeScript và Vite production build thành công
-Seed: 1.682 movie rows
+Frontend: TypeScript and Vite production build succeeded
+Seed: 1,682 movie rows
 ```
 
-## 7. Tiêu chí hoàn thành tích hợp tuần 1
+## 7. Completion criteria for week 1 integration
 
-- Không dùng token hard-code ở Frontend.
-- Tắt Backend thì Frontend phải hiển thị lỗi kết nối.
-- Request cần đăng nhập phải có `Authorization: Bearer <JWT>`.
-- Rating gửi bằng MovieLens ID và được lưu vào database.
-- TypeScript types phải khớp Pydantic/OpenAPI.
-- Top 10 hiển thị đủ fairness fields và explanation.
-- Cả Backend test và Frontend build đều vượt qua trước Pull Request.
+- No hard-coded tokens in the Frontend.
+- When the Backend is stopped, the Frontend must display a connection error.
+- Requests requiring login must carry `Authorization: Bearer <JWT>`.
+- Ratings are sent using the MovieLens ID and saved to the database.
+- TypeScript types must match Pydantic/OpenAPI.
+- The Top 10 displays all fairness fields and explanations.
+- Both the Backend tests and the Frontend build pass before the Pull Request.

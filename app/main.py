@@ -1,5 +1,5 @@
 """
-main.py — Điểm khởi động của toàn bộ Backend.
+main.py — Entry point of the whole Backend.
 """
 
 from fastapi import FastAPI

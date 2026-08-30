@@ -1,60 +1,60 @@
-# Thiết kế Hybrid NCF tuần 1
+# Hybrid NCF Design, Week 1
 
-## 1. Mục tiêu
+## 1. Objective
 
-Hybrid NCF giữ user/movie embeddings của NCF và bổ sung metadata để mô
-hình không chỉ phụ thuộc vào ID. Thứ tự ghép feature là một contract cố
-định giữa Data, AI training và Backend serving.
+Hybrid NCF keeps the user/movie embeddings of NCF and adds metadata so that the
+model does not depend on IDs alone. The feature concatenation order is a fixed
+contract between Data, AI training and Backend serving.
 
 ```text
 [user embedding, movie embedding, genres, year, history, text]
 ```
 
-## 2. Kích thước feature
+## 2. Feature dimensions
 
-| Thành phần | Số chiều | Nguồn |
+| Component | Dimensions | Source |
 |---|---:|---|
-| User embedding | 32 | Học từ `user_index` |
-| Movie embedding | 32 | Học từ `movie_index` |
-| Movie genres | 19 | Các cột genre trong `movies.csv` |
-| Release year | 1 | `release_year` được chuẩn hóa |
-| User genre history | 19 | Hồ sơ thể loại tổng hợp từ rating cũ |
-| Vietnamese preference text | 128 | `VietnameseTextEncoder` |
+| User embedding | 32 | Learned from `user_index` |
+| Movie embedding | 32 | Learned from `movie_index` |
+| Movie genres | 19 | Genre columns in `movies.csv` |
+| Release year | 1 | Normalized `release_year` |
+| User genre history | 19 | Genre profile aggregated from past ratings |
+| Preference text | 128 | `PreferenceTextEncoder` |
 | **Side features** | **167** | 19 + 1 + 19 + 128 |
-| **Tổng input MLP** | **231** | 32 + 32 + 167 |
+| **Total MLP input** | **231** | 32 + 32 + 167 |
 
-Các hằng số và thứ tự concatenate nằm trong
-`cinematch.features.hybrid_features`. Không tự đổi thứ tự ở Backend.
+The constants and concatenation order are in
+`cinematch.features.hybrid_features`. Do not change the order on the Backend side.
 
-## 3. Ý nghĩa từng nhóm
+## 3. Meaning of each group
 
 ### ID embeddings
 
-`user_index` và `movie_index` đại diện tín hiệu collaborative. ID gốc
-MovieLens vẫn được giữ bên ngoài model để join dữ liệu và trả response.
+`user_index` and `movie_index` represent the collaborative signal. The original
+MovieLens IDs are still kept outside the model to join data and return responses.
 
 ### Genres
 
-Vector multi-hot 19 chiều lấy trực tiếp từ `movies.csv`. Một phim có thể
-có nhiều giá trị 1.
+A 19-dimensional multi-hot vector taken directly from `movies.csv`. A movie can
+have multiple values of 1.
 
 ### Release year
 
-Chỉ là feature phụ, không dùng làm điều kiện xóa rating. Trước khi train,
-year cần được scale bằng thống kê chỉ lấy từ train set.
+Only an auxiliary feature, not used as a condition for removing ratings. Before training,
+the year must be scaled using statistics taken from the train set only.
 
 ### User history
 
-Vector 19 chiều biểu diễn sở thích thể loại từ các rating trước thời điểm
-dự đoán. Không được lấy rating tương lai từ validation/test vì sẽ gây data
+A 19-dimensional vector representing genre preferences from ratings before the
+prediction time. Future ratings from validation/test must not be used, as this would cause data
 leakage.
 
 ### Text
 
-Câu onboarding tiếng Việt được chuyển thành vector 128 chiều. Baseline
-tuần 1 dùng signed feature hashing để kiểm tra contract. Phương pháp này
-không hiểu ngữ nghĩa sâu và có thể được thay bằng encoder pretrained ở
-giai đoạn sau nếu nhóm còn thời gian.
+The onboarding preference sentence (English) is converted into a 128-dimensional vector. The week 1
+baseline uses signed feature hashing to verify the contract. This method
+does not capture deep semantics and may be replaced by a pretrained encoder in a
+later phase if the team has time.
 
 ## 4. Forward contract
 
@@ -68,17 +68,17 @@ side_features = build_hybrid_side_features(
 predictions = model(user_indices, movie_indices, side_features)
 ```
 
-`side_features` bắt buộc có shape `[batch_size, 167]`. Hybrid trả tensor
-`[batch_size]` và mỗi prediction nằm trong khoảng 1–5.
+`side_features` must have shape `[batch_size, 167]`. Hybrid returns a tensor of shape
+`[batch_size]` and each prediction lies in the range 1–5.
 
-## 5. Phạm vi tuần 1
+## 5. Week 1 scope
 
-Smoke training dùng metadata giả đúng shape và text vector thật để chứng
-minh toàn bộ forward/backward chạy được. Nó chưa phải kết quả thí nghiệm
-MovieLens. Việc join metadata thật và tính history không leakage thuộc
-pipeline huấn luyện tiếp theo.
+Smoke training uses fake metadata of the correct shape and real text vectors to demonstrate
+that the entire forward/backward pass runs. It is not yet a MovieLens experimental
+result. Joining real metadata and computing leakage-free history belong to the
+next training pipeline.
 
-Chạy:
+Run:
 
 ```bash
 python scripts/train_hybrid_ncf.py

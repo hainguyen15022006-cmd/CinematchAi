@@ -16,17 +16,17 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def hash_password(password: str) -> str:
-    """Băm mật khẩu trước khi lưu vào DB."""
+    """Hash a password before storing it in the DB."""
     return password_hash.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """So sánh mật khẩu người dùng nhập với bản đã hash trong DB."""
+    """Compare the password entered by the user with the hash stored in the DB."""
     return password_hash.verify(plain_password, hashed_password)
 
 
 def create_access_token(data: dict) -> str:
-    """Tạo JWT token chứa thông tin user + thời gian hết hạn."""
+    """Create a JWT containing the user data and an expiry time."""
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
@@ -34,7 +34,7 @@ def create_access_token(data: dict) -> str:
 
 
 def decode_access_token(token: str) -> dict | None:
-    """Giải mã + verify token. Trả về None nếu token sai hoặc hết hạn."""
+    """Decode and verify the token. Returns None if the token is invalid or expired."""
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
@@ -45,7 +45,7 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: Session = Depends(get_db),
 ):
-    """Dependency dùng cho mọi endpoint cần đăng nhập."""
+    """Dependency used by every endpoint that requires authentication."""
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

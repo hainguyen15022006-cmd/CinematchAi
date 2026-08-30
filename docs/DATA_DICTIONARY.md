@@ -2,80 +2,80 @@
 
 ## 1. Raw ratings: `u.data`
 
-| Cột | Kiểu dữ liệu | Ý nghĩa | Dùng để train |
+| Column | Data type | Meaning | Used for training |
 |---|---|---|---|
-| `user_id` | `int64` | ID người dùng của MovieLens | Sau khi ánh xạ sang `user_index` |
-| `movie_id` | `int64` | ID phim của MovieLens | Sau khi ánh xạ sang `movie_index` |
-| `rating` | `float32` | Điểm người dùng chấm, từ 1 đến 5 | Có |
-| `timestamp` | `int64` | Thời điểm rating theo Unix time | Dùng để chia dữ liệu, không phải feature chính |
+| `user_id` | `int64` | MovieLens user ID | After mapping to `user_index` |
+| `movie_id` | `int64` | MovieLens movie ID | After mapping to `movie_index` |
+| `rating` | `float32` | Score given by the user, from 1 to 5 | Yes |
+| `timestamp` | `int64` | Time of the rating in Unix time | Used to split the data, not a primary feature |
 
 ## 2. Raw movie catalog: `u.item`
 
-| Cột | Kiểu dữ liệu | Ý nghĩa | Chính sách xử lý |
+| Column | Data type | Meaning | Handling policy |
 |---|---|---|---|
-| `movie_id` | `int64` | ID phim | Giữ nguyên để join với rating |
-| `title` | `string` | Tên phim, thường kèm năm | Dùng để hiển thị |
-| `release_date` | `string` | Ngày phát hành trong catalog | Parse nhưng không dùng để xóa rating |
-| `video_release_date` | `string` | Ngày phát hành video | Không dùng trong MVP |
-| `imdb_url` | `string` | URL IMDb cũ | Metadata hiển thị, cho phép thiếu |
-| 19 cột genre | `int8` | Vector multi-hot thể loại | Dùng cho Hybrid NCF |
+| `movie_id` | `int64` | Movie ID | Kept as-is to join with ratings |
+| `title` | `string` | Movie title, usually including the year | Used for display |
+| `release_date` | `string` | Release date in the catalog | Parsed but not used to remove ratings |
+| `video_release_date` | `string` | Video release date | Not used in the MVP |
+| `imdb_url` | `string` | Legacy IMDb URL | Display metadata, may be missing |
+| 19 genre columns | `int8` | Multi-hot genre vector | Used for Hybrid NCF |
 
-Các cột genre nhận giá trị `0` hoặc `1`. Một phim có thể có
-nhiều thể loại cùng lúc. `unknown` là một cột genre hợp lệ.
+The genre columns take the value `0` or `1`. A movie may belong to
+several genres at once. `unknown` is a valid genre column.
 
 ## 3. Processed movie catalog: `movies.csv`
 
-| Cột | Kiểu dữ liệu | Ý nghĩa |
+| Column | Data type | Meaning |
 |---|---|---|
-| `movie_id` | `int64` | ID phim gốc |
-| `title` | `string` | Tên phim |
-| `release_date` | datetime/ISO date | Ngày phát hành đã parse; có thể thiếu |
-| `release_year` | nullable integer | Năm phát hành; có thể thiếu |
-| `release_date_missing` | `int8` | `1` nếu thiếu ngày phát hành, ngược lại `0` |
-| `imdb_url` | `string` | URL hiển thị; có thể thiếu |
-| 19 cột genre | `int8` | Vector multi-hot thể loại |
+| `movie_id` | `int64` | Original movie ID |
+| `title` | `string` | Movie title |
+| `release_date` | datetime/ISO date | Parsed release date; may be missing |
+| `release_year` | nullable integer | Release year; may be missing |
+| `release_date_missing` | `int8` | `1` if the release date is missing, otherwise `0` |
+| `imdb_url` | `string` | Display URL; may be missing |
+| 19 genre columns | `int8` | Multi-hot genre vector |
 
-`release_date` và `release_year` là metadata phụ. Phiên bản
-MVP không sử dụng chúng làm điều kiện lọc hoặc feature chính
-của MF, GMF và NCF.
+`release_date` and `release_year` are secondary metadata. The MVP
+version does not use them as a filter condition or as a primary
+feature of MF, GMF and NCF.
 
 ## 4. Processed interactions
 
-Ba file `train.csv`, `validation.csv` và `test.csv` có cùng
-schema:
+The three files `train.csv`, `validation.csv` and `test.csv` share the
+same schema:
 
-| Cột | Kiểu dữ liệu | Ý nghĩa |
+| Column | Data type | Meaning |
 |---|---|---|
-| `user_id` | `int64` | ID người dùng gốc để tra cứu |
-| `movie_id` | `int64` | ID phim gốc để tra cứu |
-| `user_index` | `int64` | Index liên tục dùng cho user embedding |
-| `movie_index` | `int64` | Index liên tục dùng cho movie embedding |
-| `rating` | `float32` | Điểm rating từ 1 đến 5 |
-| `timestamp` | `int64` | Thời gian rating và bằng chứng temporal split |
+| `user_id` | `int64` | Original user ID for lookup |
+| `movie_id` | `int64` | Original movie ID for lookup |
+| `user_index` | `int64` | Contiguous index used for the user embedding |
+| `movie_index` | `int64` | Contiguous index used for the movie embedding |
+| `rating` | `float32` | Rating score from 1 to 5 |
+| `timestamp` | `int64` | Rating time and evidence of the temporal split |
 
-Các mô hình chỉ được fit bằng `train.csv`. `validation.csv`
-dùng để chọn siêu tham số hoặc early stopping. `test.csv` chỉ
-được dùng cho đánh giá cuối cùng.
+Models are fit using `train.csv` only. `validation.csv` is used for
+hyperparameter selection or early stopping. `test.csv` is used only
+for the final evaluation.
 
 ## 5. ID mapping: `id_mappings.json`
 
-File mapping có version và hai danh sách ID gốc:
+The mapping file has a version and two lists of original IDs:
 
-| Trường | Ý nghĩa |
+| Field | Meaning |
 |---|---|
-| `version` | Phiên bản schema mapping |
-| `users.entity_name` | Loại thực thể `user` |
-| `users.external_ids` | ID user theo thứ tự `user_index` |
-| `movies.entity_name` | Loại thực thể `movie` |
-| `movies.external_ids` | ID phim theo thứ tự `movie_index` |
+| `version` | Mapping schema version |
+| `users.entity_name` | Entity type `user` |
+| `users.external_ids` | User IDs in `user_index` order |
+| `movies.entity_name` | Entity type `movie` |
+| `movies.external_ids` | Movie IDs in `movie_index` order |
 
-Vị trí của ID trong `external_ids` chính là index embedding.
-Backend phải dùng cùng file này để chuyển kết quả mô hình từ
-`movie_index` về `movie_id`.
+The position of an ID in `external_ids` is exactly its embedding index.
+The Backend must use this same file to convert model results from
+`movie_index` back to `movie_id`.
 
 ## 6. Split audit: `split_audit.json`
 
-Báo cáo chứa số dòng, user, phim, rating distribution,
-positive rate, cold-start item, overlap và temporal violation
-của ba partition. Item cold-start được báo cáo nhưng không bị
-xóa tự động.
+The report contains the number of rows, users, movies, the rating
+distribution, positive rate, cold-start items, overlap and temporal
+violations of the three partitions. Cold-start items are reported but
+are not removed automatically.

@@ -16,14 +16,14 @@ export function AppHeader() {
         <span className="brand-mark">C</span>
         <span>CineMatch</span>
       </NavLink>
-      <nav className="main-nav" aria-label="Điều hướng chính">
-        {loggedIn && <NavLink to="/onboarding">Chấm phim</NavLink>}
-        {loggedIn && <NavLink to="/room">Phòng nhóm</NavLink>}
+      <nav className="main-nav" aria-label="Main navigation">
+        {loggedIn && <NavLink to="/onboarding">Rate movies</NavLink>}
+        {loggedIn && <NavLink to="/room">Group room</NavLink>}
         <NavLink to="/recommendations">Top 10</NavLink>
         {loggedIn ? (
-          <button className="text-button" onClick={logout}>Đăng xuất</button>
+          <button className="text-button" onClick={logout}>Sign out</button>
         ) : (
-          <NavLink to="/login">Đăng nhập</NavLink>
+          <NavLink to="/login">Sign in</NavLink>
         )}
       </nav>
     </header>
