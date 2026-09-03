@@ -48,6 +48,10 @@ def main() -> int:
         config.paths.movie_numeric_features,
         config.paths.user_genre_profiles,
         config.paths.numeric_feature_preprocessor,
+        expected_data_version=config.data_version,
+        expected_feature_contract_version=(
+            config.feature_contract_version
+        ),
     )
     text_artifacts = load_text_feature_artifacts(
         config.paths.user_pseudo_text,
@@ -55,6 +59,10 @@ def main() -> int:
         config.paths.user_text_vectors,
         config.paths.movie_text_vectors,
         config.paths.text_feature_preprocessor,
+        expected_data_version=config.data_version,
+        expected_feature_contract_version=(
+            config.feature_contract_version
+        ),
     )
 
     report = build_feature_coverage_report(

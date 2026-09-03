@@ -59,11 +59,11 @@ Generate model-ready data and run the post-split audit:
 ```bash
 python scripts/prepare_data.py
 python scripts/audit_splits.py
-python scripts/create_data_manifest.py
 python scripts/prepare_evaluation_data.py
 python scripts/prepare_numeric_features.py
 python scripts/prepare_text_features.py
 python scripts/report_feature_coverage.py
+python scripts/create_data_manifest.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -108,7 +108,9 @@ outputs/
     └── feature_coverage_report.json
 ```
 
-`data_manifest.json` records the dataset and feature-contract versions,
+`data_manifest.json` is created last, after every other artifact exists. It
+records the dataset and feature-contract versions, the feature-generation
+parameters,
 counts calculated from the generated files, split policy, quality checks and
 SHA-256 checksums. Its contract is documented by
 `schemas/data_manifest.schema.json`.

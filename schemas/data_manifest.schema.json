@@ -13,7 +13,8 @@
     "split",
     "quality",
     "evaluation_contract",
-    "artifacts"
+    "artifacts",
+    "feature_generation"
   ],
   "properties": {
     "schema_version": {"const": "1.0"},
@@ -63,6 +64,14 @@
     "split": {"type": "object"},
     "quality": {"type": "object"},
     "evaluation_contract": {"type": "object"},
-    "artifacts": {"type": "object"}
+    "artifacts": {"type": "object"},
+    "feature_generation": {
+      "type": "object",
+      "required": [
+        "random_seed",
+        "positive_rating_threshold",
+        "pseudo_text"
+      ]
+    }
   }
 }

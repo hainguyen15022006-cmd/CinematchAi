@@ -200,6 +200,46 @@ def build_data_manifest(
         raise DataManifestError("generated_at must be timezone-aware")
     timestamp = timestamp.astimezone(timezone.utc)
 
+    downstream_artifacts = {
+        "evaluation_catalog": (
+            config.paths.evaluation_handoff_dir / "catalog.json"
+        ),
+        "evaluation_seen_items": (
+            config.paths.evaluation_handoff_dir / "seen_items.json"
+        ),
+        "evaluation_positive_test_items": (
+            config.paths.evaluation_handoff_dir
+            / "positive_test_items.json"
+        ),
+        "evaluation_summary": (
+            config.paths.evaluation_handoff_dir
+            / "evaluation_data_summary.json"
+        ),
+        "movie_numeric_features": config.paths.movie_numeric_features,
+        "user_genre_profiles": config.paths.user_genre_profiles,
+        "numeric_feature_preprocessor": (
+            config.paths.numeric_feature_preprocessor
+        ),
+        "user_pseudo_text": config.paths.user_pseudo_text,
+        "movie_text": config.paths.movie_text,
+        "user_text_vectors": config.paths.user_text_vectors,
+        "movie_text_vectors": config.paths.movie_text_vectors,
+        "text_feature_preprocessor": (
+            config.paths.text_feature_preprocessor
+        ),
+    }
+    missing = sorted(
+        name
+        for name, path in downstream_artifacts.items()
+        if not path.expanduser().resolve().is_file()
+    )
+    if missing:
+        raise DataManifestError(
+            "The manifest is created after the whole pipeline; these "
+            f"artifacts are missing: {missing}. Run the evaluation and "
+            "feature scripts first."
+        )
+
     return {
         "schema_version": "1.0",
         "generated_at_utc": timestamp.isoformat().replace(
@@ -313,6 +353,23 @@ def build_data_manifest(
                 config.paths.mappings,
                 root,
             ),
+            **{
+                name: _artifact_entry(path, root)
+                for name, path in downstream_artifacts.items()
+            },
+        },
+        "feature_generation": {
+            "random_seed": config.random_seed,
+            "positive_rating_threshold": (
+                config.positive_rating_threshold
+            ),
+            "pseudo_text": {
+                "language": config.pseudo_text_language,
+                "maximum_genres": config.pseudo_text_maximum_genres,
+                "minimum_genre_observations": (
+                    config.pseudo_text_minimum_genre_observations
+                ),
+            },
         },
     }
 

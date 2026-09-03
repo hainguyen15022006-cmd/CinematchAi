@@ -38,6 +38,26 @@ def build_feature_coverage_report(
     if timestamp.tzinfo is None:
         raise ValueError("generated_at must be timezone-aware")
 
+    numeric_version = numeric_artifacts.preprocessor.get("data_version")
+    text_version = text_artifacts.preprocessor.get("data_version")
+    if not (numeric_version == text_version == data_version):
+        raise ValueError(
+            "Artifact data versions are incompatible: "
+            f"numeric='{numeric_version}', text='{text_version}', "
+            f"expected='{data_version}'"
+        )
+    numeric_contract = numeric_artifacts.preprocessor.get(
+        "feature_contract_version"
+    )
+    text_contract = text_artifacts.preprocessor.get(
+        "feature_contract_version"
+    )
+    if numeric_contract != text_contract:
+        raise ValueError(
+            "Artifact feature contracts are incompatible: "
+            f"numeric='{numeric_contract}', text='{text_contract}'"
+        )
+
     user_texts = text_artifacts.user_texts
     fallback_count = int(user_texts["used_fallback"].sum())
     genre_counts = Counter(

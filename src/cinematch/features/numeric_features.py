@@ -540,8 +540,16 @@ def load_numeric_feature_artifacts(
     movie_features_path: Path,
     user_profiles_path: Path,
     preprocessor_path: Path,
+    *,
+    expected_data_version: str | None = None,
+    expected_feature_contract_version: str | None = None,
 ) -> NumericFeatureArtifacts:
-    """Load and validate numeric artifacts for training or serving."""
+    """Load and validate numeric artifacts for training or serving.
+
+    When the expected versions are given, an artifact generated from a
+    different data version or feature contract is rejected instead of
+    being silently mixed into the run.
+    """
     for path in (
         movie_features_path,
         user_profiles_path,
@@ -594,6 +602,25 @@ def load_numeric_feature_artifacts(
     ):
         raise NumericFeatureError(
             "Numeric feature order does not match code"
+        )
+    if (
+        expected_data_version is not None
+        and preprocessor.get("data_version") != expected_data_version
+    ):
+        raise NumericFeatureError(
+            "Numeric artifact data_version "
+            f"'{preprocessor.get('data_version')}' does not match "
+            f"expected '{expected_data_version}'"
+        )
+    if (
+        expected_feature_contract_version is not None
+        and preprocessor.get("feature_contract_version")
+        != expected_feature_contract_version
+    ):
+        raise NumericFeatureError(
+            "Numeric artifact feature_contract_version "
+            f"'{preprocessor.get('feature_contract_version')}' does not "
+            f"match expected '{expected_feature_contract_version}'"
         )
     ReleaseYearScaler.from_dict(preprocessor.get("release_year"))
     return NumericFeatureArtifacts(

@@ -294,3 +294,34 @@ def test_nonpositive_release_year_is_rejected() -> None:
 
     with pytest.raises(NumericFeatureError, match="positive"):
         fit_release_year_scaler(train, corrupted)
+
+
+def test_loader_rejects_mismatched_data_version(tmp_path: Path) -> None:
+    # Regression for the review finding: an artifact from another data
+    # version must not be silently mixed into a run.
+    artifacts = build_fixture_artifacts()
+    paths = save_numeric_feature_artifacts(
+        artifacts,
+        tmp_path / "movie_numeric_features.csv",
+        tmp_path / "user_genre_profiles.csv",
+        tmp_path / "numeric_feature_preprocessor.json",
+    )
+
+    load_numeric_feature_artifacts(
+        *paths,
+        expected_data_version="fixture-v1",
+        expected_feature_contract_version="hybrid-v1-167",
+    )
+    with pytest.raises(NumericFeatureError, match="data_version"):
+        load_numeric_feature_artifacts(
+            *paths,
+            expected_data_version="old-data-v0",
+        )
+    with pytest.raises(
+        NumericFeatureError,
+        match="feature_contract_version",
+    ):
+        load_numeric_feature_artifacts(
+            *paths,
+            expected_feature_contract_version="hybrid-v9-999",
+        )

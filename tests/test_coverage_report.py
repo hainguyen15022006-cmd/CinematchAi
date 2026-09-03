@@ -105,3 +105,21 @@ def test_real_coverage_report_matches_artifacts_if_available() -> None:
     assert report["users"]["pseudo_text_fallback"] == int(
         pseudo["used_fallback"].sum()
     )
+
+
+def test_coverage_report_rejects_mixed_data_versions() -> None:
+    report, train, movies, text = build_fixture_report()
+    numeric = build_numeric_feature_artifacts(
+        *make_numeric_feature_fixture(),
+        data_version="old-data-v0",
+        feature_contract_version="hybrid-v1-167",
+    )
+
+    with pytest.raises(ValueError, match="incompatible"):
+        build_feature_coverage_report(
+            train,
+            movies,
+            numeric,
+            text,
+            data_version="fixture-v1",
+        )

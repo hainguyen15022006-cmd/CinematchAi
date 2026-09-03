@@ -34,6 +34,27 @@ def _write_fixture_artifacts(
     ratings_raw.write_text("fixture ratings\n", encoding="utf-8")
     movies_raw.write_text("fixture movies\n", encoding="utf-8")
 
+    evaluation_directory = tmp_path / "outputs" / "evaluation"
+    features_directory = tmp_path / "outputs" / "features"
+    evaluation_directory.mkdir(parents=True)
+    features_directory.mkdir(parents=True)
+    downstream_names = (
+        evaluation_directory / "catalog.json",
+        evaluation_directory / "seen_items.json",
+        evaluation_directory / "positive_test_items.json",
+        evaluation_directory / "evaluation_data_summary.json",
+        features_directory / "movies.csv",
+        features_directory / "users.csv",
+        features_directory / "preprocessor.json",
+        features_directory / "user_text.csv",
+        features_directory / "movie_text.csv",
+        features_directory / "user_vectors.npz",
+        features_directory / "movie_vectors.npz",
+        features_directory / "text.json",
+    )
+    for path in downstream_names:
+        path.write_text(f"fixture {path.name}\n", encoding="utf-8")
+
     columns = [
         "user_id",
         "movie_id",
@@ -207,6 +228,56 @@ def test_manifest_is_derived_from_artifacts(
         "random_seed": 42,
     }
     assert len(manifest["artifacts"]["train"]["sha256"]) == 64
+    assert manifest["feature_generation"]["pseudo_text"] == {
+        "language": "en",
+        "maximum_genres": 3,
+        "minimum_genre_observations": 3,
+    }
+    assert "user_text_vectors" in manifest["artifacts"]
+    assert "numeric_feature_preprocessor" in manifest["artifacts"]
+
+
+def test_manifest_changes_when_a_feature_artifact_changes(
+    tmp_path: Path,
+) -> None:
+    # Regression for the review finding: a feature change must change
+    # the manifest, otherwise two people with the same manifest could
+    # still train on different features.
+    config = _write_fixture_artifacts(tmp_path)
+    generated_at = datetime(2026, 9, 3, 3, 0, tzinfo=timezone.utc)
+    first = build_data_manifest(
+        config,
+        tmp_path,
+        generated_at=generated_at,
+    )
+
+    vectors_path = (
+        tmp_path / "outputs" / "features" / "user_vectors.npz"
+    )
+    vectors_path.write_text("changed vectors\n", encoding="utf-8")
+    second = build_data_manifest(
+        config,
+        tmp_path,
+        generated_at=generated_at,
+    )
+
+    assert first != second
+    assert (
+        first["artifacts"]["user_text_vectors"]["sha256"]
+        != second["artifacts"]["user_text_vectors"]["sha256"]
+    )
+
+
+def test_manifest_requires_downstream_artifacts(
+    tmp_path: Path,
+) -> None:
+    config = _write_fixture_artifacts(tmp_path)
+    (
+        tmp_path / "outputs" / "features" / "user_vectors.npz"
+    ).unlink()
+
+    with pytest.raises(DataManifestError, match="user_text_vectors"):
+        build_data_manifest(config, tmp_path)
 
 
 def test_manifest_rejects_configured_count_mismatch(

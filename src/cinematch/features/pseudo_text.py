@@ -638,8 +638,16 @@ def load_text_feature_artifacts(
     user_vectors_path: Path,
     movie_vectors_path: Path,
     preprocessor_path: Path,
+    *,
+    expected_data_version: str | None = None,
+    expected_feature_contract_version: str | None = None,
 ) -> TextFeatureArtifacts:
-    """Load and validate all generated text-feature artifacts."""
+    """Load and validate all generated text-feature artifacts.
+
+    When the expected versions are given, an artifact generated from a
+    different data version or feature contract is rejected instead of
+    being silently mixed into the run.
+    """
     paths = tuple(
         path.expanduser().resolve()
         for path in (
@@ -692,4 +700,23 @@ def load_text_feature_artifacts(
         preprocessor=preprocessor,
     )
     _validate_loaded_artifacts(artifacts)
+    if (
+        expected_data_version is not None
+        and preprocessor.get("data_version") != expected_data_version
+    ):
+        raise TextFeatureError(
+            "Text artifact data_version "
+            f"'{preprocessor.get('data_version')}' does not match "
+            f"expected '{expected_data_version}'"
+        )
+    if (
+        expected_feature_contract_version is not None
+        and preprocessor.get("feature_contract_version")
+        != expected_feature_contract_version
+    ):
+        raise TextFeatureError(
+            "Text artifact feature_contract_version "
+            f"'{preprocessor.get('feature_contract_version')}' does not "
+            f"match expected '{expected_feature_contract_version}'"
+        )
     return artifacts

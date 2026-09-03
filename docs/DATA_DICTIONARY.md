@@ -82,6 +82,14 @@ are not removed automatically.
 
 ## 7. Data manifest: `data_manifest.json`
 
+The manifest is generated last, after the evaluation and feature scripts,
+and fails if any downstream artifact is missing. Besides the week-1 data
+files it records the SHA-256 of all evaluation and feature artifacts plus
+the feature-generation parameters (seed, positive threshold and the
+pseudo-text rules), so two identical manifests imply identical features.
+Loaders additionally reject artifacts whose data_version or
+feature_contract_version does not match the configuration.
+
 The manifest is generated after data preparation and identifies the exact
 dataset consumed by training and evaluation code.
 
