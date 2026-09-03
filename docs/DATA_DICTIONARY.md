@@ -174,9 +174,24 @@ input.
 | `text_feature_preprocessor.json` | Seed, rules, templates, encoder, fusion, counts and limitations |
 
 A preferred genre has a train mean rating of at least the configured positive
-threshold. At most three are selected by mean rating, observation count and
+threshold, observed on at least `minimum_genre_observations` rated movies
+(3 in `configs/cinematch.yaml`). At most three are selected by mean rating, observation count and
 fixed genre order. If none qualifies, the best observed genres are used and
 `used_fallback` is true. The non-semantic `unknown` indicator is excluded from
 user preference selection but retained in movie metadata. User and movie
 vectors are combined by element-wise product, producing the fixed
 128-dimensional text interaction block.
+
+## 11. Feature coverage report: `feature_coverage_report.json`
+
+`scripts/report_feature_coverage.py` reads the artifacts above and writes one
+summary used by the data report and the handoff review. It never modifies a
+feature.
+
+| Field group | Meaning |
+|---|---|
+| `users` | Total users, pseudo-text fallback count/share, empty history profiles |
+| `pseudo_text_genres` | Selection counts per genre and genres never selected |
+| `movies` | Catalog size, missing-year imputations, movies absent from train |
+| `normalized_release_year` | Min/max, warning limit, outliers, report-only policy |
+| `text_vectors` | Row counts and the unit-norm check |

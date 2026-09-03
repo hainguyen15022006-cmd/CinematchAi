@@ -323,3 +323,30 @@ artifacts cover users and movies. Numbers below come from
 Old movies produce large negative normalized-year values (a 1920s film is
 about -4.75 standard deviations from the train mean). These values are
 reported, not clipped; clipping would silently distort a real signal.
+
+## 16. Data freeze and handoff checklist
+
+As of the end of the acceleration-week Data track, data version
+`ml100k-temporal-v1` and feature contract `hybrid-v1-167` are frozen.
+The temporal split, the processed schemas, the ID mappings, the 39-column
+numeric layout and the 128-dimensional text-interaction block may no longer
+change. Any change now requires a new `data.version` value in
+`configs/cinematch.yaml`, a regenerated manifest and the team's agreement,
+because trained checkpoints and evaluation results reference the current
+version.
+
+Handoff checklist (all items verified from a clean clone):
+
+- [x] `python -m pytest -q` passes (256 tests).
+- [x] The full pipeline regenerates every artifact from `download_data.py`
+      to `report_feature_coverage.py`.
+- [x] `data_manifest.json` artifact checksums are identical across machines.
+- [x] Evaluation artifacts: 943 users, 836 evaluable, 107 skipped.
+- [x] Coverage report: fallback 235/943, empty histories 0, year range
+      [-4.75, 0.61], unit-norm text vectors.
+- [ ] Thành confirmed the evaluation handoff from a clean clone.
+- [ ] Công Thành confirmed the 167-dim feature loaders from a clean clone.
+- [ ] Chúc confirmed the ID mapping and manifest fields for the adapter.
+
+The last three boxes are ticked when each owner replies with their pytest
+count and the first checksum line of their regenerated manifest.
