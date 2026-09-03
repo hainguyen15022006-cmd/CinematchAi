@@ -85,6 +85,26 @@ def test_default_data_config_is_valid() -> None:
         / "features"
         / "numeric_feature_preprocessor.json"
     )
+    assert config.paths.user_pseudo_text == (
+        PROJECT_ROOT / "outputs" / "features" / "user_pseudo_text.csv"
+    )
+    assert config.paths.movie_text == (
+        PROJECT_ROOT / "outputs" / "features" / "movie_text.csv"
+    )
+    assert config.paths.user_text_vectors == (
+        PROJECT_ROOT / "outputs" / "features" / "user_text_vectors.npz"
+    )
+    assert config.paths.movie_text_vectors == (
+        PROJECT_ROOT / "outputs" / "features" / "movie_text_vectors.npz"
+    )
+    assert config.paths.text_feature_preprocessor == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "text_feature_preprocessor.json"
+    )
+    assert config.pseudo_text_language == "en"
+    assert config.pseudo_text_maximum_genres == 3
 
 
 def test_invalid_split_ratios_are_rejected(

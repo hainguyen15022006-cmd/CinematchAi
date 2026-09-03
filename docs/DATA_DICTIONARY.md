@@ -158,3 +158,25 @@ and serving must load the same artifact so that feature meanings do not drift.
 Its JSON structure is documented by
 `schemas/numeric_feature_preprocessor.schema.json`; full usage is described in
 `docs/NUMERIC_FEATURES.md`.
+
+## 10. Hybrid text-feature artifacts
+
+`scripts/prepare_text_features.py` creates source text and vector artifacts.
+Pseudo-text is generated from train ratings and is not presented as real user
+input.
+
+| File | Meaning |
+|---|---|
+| `user_pseudo_text.csv` | User IDs/indices, selected genres, fallback flag and generated English sentence |
+| `movie_text.csv` | Movie IDs/indices, genres and `title + genres` document |
+| `user_text_vectors.npz` | Contiguous user indices and a float32 `[943, 128]` matrix |
+| `movie_text_vectors.npz` | Contiguous movie indices and a float32 `[1682, 128]` matrix |
+| `text_feature_preprocessor.json` | Seed, rules, templates, encoder, fusion, counts and limitations |
+
+A preferred genre has a train mean rating of at least the configured positive
+threshold. At most three are selected by mean rating, observation count and
+fixed genre order. If none qualifies, the best observed genres are used and
+`used_fallback` is true. The non-semantic `unknown` indicator is excluded from
+user preference selection but retained in movie metadata. User and movie
+vectors are combined by element-wise product, producing the fixed
+128-dimensional text interaction block.

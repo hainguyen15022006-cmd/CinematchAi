@@ -216,14 +216,16 @@ The Data handoff to AI consists of:
 - `movie_numeric_features.csv`, `user_genre_profiles.csv` and
   `numeric_feature_preprocessor.json` as the leakage-safe numeric-feature
   handoff for Hybrid NCF.
+- User/movie source-text CSVs, 128-dimensional vector archives and
+  `text_feature_preprocessor.json` as the deterministic text handoff.
 - A loader with an explicit schema in `cinematch.data.io`.
 
 The current data version is `ml100k-temporal-v1`. Hybrid side features follow
 contract `hybrid-v1-167` in this fixed order: 19 movie genres, one normalized
 release-year value, 19 train-only user genre-history values and a
-128-dimensional preference-text vector. The 39 numeric values are now produced
-by `scripts/prepare_numeric_features.py`; the text vector remains a separate
-input owned by the Hybrid/Text training pipeline.
+128-dimensional user-movie text-interaction vector. The 39 numeric values are
+produced by `scripts/prepare_numeric_features.py`; the text sources and vectors
+are produced by `scripts/prepare_text_features.py`.
 
 MovieLens 100K does not provide modern posters or movie
 runtimes. Therefore, the posters and runtime constraints of the interface must
@@ -261,6 +263,30 @@ For the current MovieLens preparation, the train-only release-year statistics
 are: median `1995.0`, mean `1989.3911` and population standard deviation
 `14.1825`. They are generated values recorded at higher precision in
 `numeric_feature_preprocessor.json`, not manually configured constants.
+
+## 14. Pseudo-text and movie text
+
+MovieLens 100K does not contain preference sentences or movie overviews. For
+the controlled Hybrid experiment, user pseudo-text is deterministically
+generated from genres with a train mean rating of at least 4.0. Users without
+a qualifying genre use their highest-rated observed genres as an explicit
+fallback. Movie text contains only the catalog title and genre names.
+
+The current signed-feature-hashing encoder creates finite L2-normalized
+128-dimensional user and movie vectors. Element-wise multiplication creates
+one 128-dimensional user-movie interaction, preserving the 167-dimensional
+Hybrid contract. This transformation does not use validation/test ratings.
+
+The generated MovieLens artifact contains 943 user sentences and 1,682 movie
+documents. Eighty-five users (9.01%) have no genre reaching the 4.0 threshold
+and use the documented highest-mean observed-genre fallback. The `unknown`
+indicator is never presented as a user preference genre.
+
+This is synthetic text derived from the same train interactions used elsewhere
+in the model. It is not independent natural-language evidence and does not by
+itself support a claim that real free-form text improves recommendations. Any
+RQ2 conclusion must identify the encoder, compare a no-text mask under the same
+protocol and state this limitation.
 
 ## 12. Evaluation eligibility handoff
 

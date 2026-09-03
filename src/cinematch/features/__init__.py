@@ -17,6 +17,14 @@ from cinematch.features.text_encoder import (
     TextEncoderConfig,
     VietnameseTextEncoder,
 )
+from cinematch.features.pseudo_text import (
+    TEXT_FEATURE_DIM,
+    TEXT_FUSION,
+    TextFeatureArtifacts,
+    build_interaction_text_features,
+    build_text_feature_artifacts,
+    load_text_feature_artifacts,
+)
 
 __all__ = [
     "HYBRID_SIDE_FEATURE_DIM",
@@ -25,9 +33,15 @@ __all__ = [
     "PreferenceTextEncoder",
     "ReleaseYearScaler",
     "TextEncoderConfig",
+    "TextFeatureArtifacts",
+    "TEXT_FEATURE_DIM",
+    "TEXT_FUSION",
     "VietnameseTextEncoder",  # Backward-compatible alias of PreferenceTextEncoder.
     "build_hybrid_side_features",
     "build_interaction_numeric_features",
     "build_numeric_feature_artifacts",
+    "build_interaction_text_features",
+    "build_text_feature_artifacts",
     "load_numeric_feature_artifacts",
+    "load_text_feature_artifacts",
 ]

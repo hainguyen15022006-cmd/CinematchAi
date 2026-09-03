@@ -217,7 +217,10 @@ def build_data_manifest(
                 {"name": "movie_genres", "dimensions": GENRE_FEATURE_DIM},
                 {"name": "normalized_release_year", "dimensions": YEAR_FEATURE_DIM},
                 {"name": "user_genre_history", "dimensions": HISTORY_FEATURE_DIM},
-                {"name": "preference_text", "dimensions": TEXT_FEATURE_DIM},
+                {
+                    "name": "user_movie_text_interaction",
+                    "dimensions": TEXT_FEATURE_DIM,
+                },
             ],
             "total_dimensions": HYBRID_SIDE_FEATURE_DIM,
             "genre_names": list(GENRE_COLUMNS),

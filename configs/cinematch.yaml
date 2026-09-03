@@ -35,6 +35,15 @@ data:
     movie_numeric_path: outputs/features/movie_numeric_features.csv
     user_genre_profiles_path: outputs/features/user_genre_profiles.csv
     numeric_preprocessor_path: outputs/features/numeric_feature_preprocessor.json
+    user_pseudo_text_path: outputs/features/user_pseudo_text.csv
+    movie_text_path: outputs/features/movie_text.csv
+    user_text_vectors_path: outputs/features/user_text_vectors.npz
+    movie_text_vectors_path: outputs/features/movie_text_vectors.npz
+    text_preprocessor_path: outputs/features/text_feature_preprocessor.json
+
+    pseudo_text:
+      language: en
+      maximum_genres: 3
 
   temporal_split:
     strategy: per_user

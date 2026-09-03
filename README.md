@@ -62,6 +62,7 @@ python scripts/audit_splits.py
 python scripts/create_data_manifest.py
 python scripts/prepare_evaluation_data.py
 python scripts/prepare_numeric_features.py
+python scripts/prepare_text_features.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -97,7 +98,12 @@ outputs/
 └── features/
     ├── movie_numeric_features.csv
     ├── user_genre_profiles.csv
-    └── numeric_feature_preprocessor.json
+    ├── numeric_feature_preprocessor.json
+    ├── user_pseudo_text.csv
+    ├── movie_text.csv
+    ├── user_text_vectors.npz
+    ├── movie_text_vectors.npz
+    └── text_feature_preprocessor.json
 ```
 
 `data_manifest.json` records the dataset and feature-contract versions,
@@ -113,6 +119,11 @@ The numeric-feature handoff contains the 39 real numeric inputs for Hybrid
 NCF: 19 movie genres, one train-normalized release year and 19 train-only user
 genre-history values. Its formulas, fixed column order and ownership rules are
 in `docs/NUMERIC_FEATURES.md`.
+
+The text-feature handoff deterministically derives English user pseudo-text
+from train ratings and movie text from catalog titles and genres. It encodes
+both sides to 128 dimensions and uses a Hadamard product to preserve the
+167-dimensional Hybrid contract. See `docs/PSEUDO_TEXT_FEATURES.md`.
 
 The files above are derived data and are not committed to
 GitHub. Team members regenerate them using the scripts.

@@ -28,6 +28,11 @@ class DataPaths:
     movie_numeric_features: Path
     user_genre_profiles: Path
     numeric_feature_preprocessor: Path
+    user_pseudo_text: Path
+    movie_text: Path
+    user_text_vectors: Path
+    movie_text_vectors: Path
+    text_feature_preprocessor: Path
 
 
 @dataclass(frozen=True)
@@ -49,6 +54,8 @@ class DataPipelineConfig:
     positive_rating_threshold: float
     evaluation_top_k: int
     negative_sample_size: int
+    pseudo_text_language: str
+    pseudo_text_maximum_genres: int
     paths: DataPaths
 
 
@@ -175,6 +182,7 @@ def load_data_config(
     split = _require_mapping(data, "temporal_split")
     reports = _require_mapping(data, "reports")
     features = _require_mapping(data, "features")
+    pseudo_text = _require_mapping(features, "pseudo_text")
 
     expected_ratings = _require_integer(expected, "ratings")
     expected_users = _require_integer(expected, "users")
@@ -258,6 +266,23 @@ def load_data_config(
             "negative_sample_size must be positive"
         )
 
+    pseudo_text_language = _require_string(
+        pseudo_text,
+        "language",
+    )
+    if pseudo_text_language != "en":
+        raise ConfigurationError(
+            "data.features.pseudo_text.language must be 'en'"
+        )
+    pseudo_text_maximum_genres = _require_integer(
+        pseudo_text,
+        "maximum_genres",
+    )
+    if not 1 <= pseudo_text_maximum_genres <= 19:
+        raise ConfigurationError(
+            "pseudo-text maximum_genres must be within [1, 19]"
+        )
+
     paths = DataPaths(
         ratings_raw=_resolve_project_path(
             root,
@@ -324,6 +349,31 @@ def load_data_config(
             features.get("numeric_preprocessor_path"),
             "data.features.numeric_preprocessor_path",
         ),
+        user_pseudo_text=_resolve_project_path(
+            root,
+            features.get("user_pseudo_text_path"),
+            "data.features.user_pseudo_text_path",
+        ),
+        movie_text=_resolve_project_path(
+            root,
+            features.get("movie_text_path"),
+            "data.features.movie_text_path",
+        ),
+        user_text_vectors=_resolve_project_path(
+            root,
+            features.get("user_text_vectors_path"),
+            "data.features.user_text_vectors_path",
+        ),
+        movie_text_vectors=_resolve_project_path(
+            root,
+            features.get("movie_text_vectors_path"),
+            "data.features.movie_text_vectors_path",
+        ),
+        text_feature_preprocessor=_resolve_project_path(
+            root,
+            features.get("text_preprocessor_path"),
+            "data.features.text_preprocessor_path",
+        ),
     )
 
     return DataPipelineConfig(
@@ -348,5 +398,7 @@ def load_data_config(
         positive_rating_threshold=positive_threshold,
         evaluation_top_k=evaluation_top_k,
         negative_sample_size=negative_sample_size,
+        pseudo_text_language=pseudo_text_language,
+        pseudo_text_maximum_genres=pseudo_text_maximum_genres,
         paths=paths,
     )

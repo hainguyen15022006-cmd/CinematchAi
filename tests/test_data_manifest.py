@@ -111,6 +111,8 @@ def _write_fixture_artifacts(
         positive_rating_threshold=4.0,
         evaluation_top_k=10,
         negative_sample_size=100,
+        pseudo_text_language="en",
+        pseudo_text_maximum_genres=3,
         paths=DataPaths(
             ratings_raw=ratings_raw,
             movies_raw=movies_raw,
@@ -132,6 +134,21 @@ def _write_fixture_artifacts(
             ),
             numeric_feature_preprocessor=(
                 tmp_path / "outputs" / "features" / "preprocessor.json"
+            ),
+            user_pseudo_text=(
+                tmp_path / "outputs" / "features" / "user_text.csv"
+            ),
+            movie_text=(
+                tmp_path / "outputs" / "features" / "movie_text.csv"
+            ),
+            user_text_vectors=(
+                tmp_path / "outputs" / "features" / "user_vectors.npz"
+            ),
+            movie_text_vectors=(
+                tmp_path / "outputs" / "features" / "movie_vectors.npz"
+            ),
+            text_feature_preprocessor=(
+                tmp_path / "outputs" / "features" / "text.json"
             ),
         ),
     )
@@ -173,6 +190,10 @@ def test_manifest_is_derived_from_artifacts(
         "hybrid-v1-167"
     )
     assert manifest["feature_contract"]["total_dimensions"] == 167
+    assert manifest["feature_contract"]["ordered_layout"][-1] == {
+        "name": "user_movie_text_interaction",
+        "dimensions": 128,
+    }
     assert len(manifest["feature_contract"]["genre_names"]) == 19
     assert manifest["evaluation_contract"] == {
         "seen_items": "train_union_validation",
