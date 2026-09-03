@@ -105,6 +105,7 @@ def test_default_data_config_is_valid() -> None:
     )
     assert config.pseudo_text_language == "en"
     assert config.pseudo_text_maximum_genres == 3
+    assert config.pseudo_text_minimum_genre_observations == 3
 
 
 def test_invalid_split_ratios_are_rejected(
