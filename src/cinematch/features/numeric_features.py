@@ -173,6 +173,11 @@ def _validate_train_and_movies(
         raise NumericFeatureError(
             "train interactions contain missing values"
         )
+    ratings = train["rating"].astype(float)
+    if ((ratings < 1.0) | (ratings > 5.0)).any():
+        raise NumericFeatureError(
+            "train ratings must stay within the MovieLens scale [1, 5]"
+        )
     if train.duplicated(["user_id", "movie_id"]).any():
         raise NumericFeatureError(
             "train interactions contain duplicate user-movie pairs"

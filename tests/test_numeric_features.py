@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+import pytest
 import torch
 
 from cinematch.data.io import (
@@ -18,11 +19,13 @@ from cinematch.data.schema import (
 )
 from cinematch.features.numeric_features import (
     HISTORY_COLUMNS,
+    NumericFeatureError,
     MOVIE_NUMERIC_COLUMNS,
     NUMERIC_FEATURE_DIM,
     USER_GENRE_PROFILE_COLUMNS,
     build_interaction_numeric_features,
     build_numeric_feature_artifacts,
+    fit_release_year_scaler,
     load_numeric_feature_artifacts,
     save_numeric_feature_artifacts,
 )
@@ -229,3 +232,65 @@ def test_real_movielens_numeric_features_if_available() -> None:
     )
     assert numeric_tensor.shape == (64, 39)
     assert torch.isfinite(numeric_tensor).all()
+
+
+def test_interaction_rejects_unknown_movie_index() -> None:
+    artifacts = build_fixture_artifacts()
+    interactions = pd.DataFrame(
+        [[9, 99, 9, 99, 4.0, 100]],
+        columns=list(MAPPED_RATING_DTYPES),
+    ).astype(MAPPED_RATING_DTYPES)
+
+    with pytest.raises(NumericFeatureError, match="joined"):
+        build_interaction_numeric_features(
+            interactions,
+            artifacts.movie_features,
+            artifacts.user_profiles,
+        )
+
+
+def test_duplicate_movie_id_in_catalog_is_rejected() -> None:
+    train, movies, user_mapping, movie_mapping = (
+        make_numeric_feature_fixture()
+    )
+    duplicated = pd.concat(
+        [movies, movies.iloc[[0]]],
+        ignore_index=True,
+    )
+
+    with pytest.raises(NumericFeatureError, match="duplicate movie"):
+        build_numeric_feature_artifacts(
+            train,
+            duplicated,
+            user_mapping,
+            movie_mapping,
+            data_version="fixture-v1",
+            feature_contract_version="hybrid-v1-167",
+        )
+
+
+def test_rating_outside_movielens_scale_is_rejected() -> None:
+    train, movies, user_mapping, movie_mapping = (
+        make_numeric_feature_fixture()
+    )
+    corrupted = train.copy(deep=True)
+    corrupted.loc[0, "rating"] = 6.0
+
+    with pytest.raises(NumericFeatureError, match=r"scale \[1, 5\]"):
+        build_numeric_feature_artifacts(
+            corrupted,
+            movies,
+            user_mapping,
+            movie_mapping,
+            data_version="fixture-v1",
+            feature_contract_version="hybrid-v1-167",
+        )
+
+
+def test_nonpositive_release_year_is_rejected() -> None:
+    train, movies, _, _ = make_numeric_feature_fixture()
+    corrupted = movies.copy(deep=True)
+    corrupted.loc[0, "release_year"] = -5
+
+    with pytest.raises(NumericFeatureError, match="positive"):
+        fit_release_year_scaler(train, corrupted)

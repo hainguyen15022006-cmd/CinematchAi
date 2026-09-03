@@ -40,10 +40,12 @@ data:
     user_text_vectors_path: outputs/features/user_text_vectors.npz
     movie_text_vectors_path: outputs/features/movie_text_vectors.npz
     text_preprocessor_path: outputs/features/text_feature_preprocessor.json
+    coverage_report_path: outputs/features/feature_coverage_report.json
 
     pseudo_text:
       language: en
       maximum_genres: 3
+      minimum_genre_observations: 3
 
   temporal_split:
     strategy: per_user

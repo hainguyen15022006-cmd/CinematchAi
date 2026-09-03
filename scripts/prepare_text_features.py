@@ -53,6 +53,9 @@ def main() -> int:
         feature_contract_version=config.feature_contract_version,
         positive_rating_threshold=config.positive_rating_threshold,
         maximum_genres=config.pseudo_text_maximum_genres,
+        minimum_genre_observations=(
+            config.pseudo_text_minimum_genre_observations
+        ),
         seed=config.random_seed,
         language=config.pseudo_text_language,
     )

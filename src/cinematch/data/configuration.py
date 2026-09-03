@@ -33,6 +33,7 @@ class DataPaths:
     user_text_vectors: Path
     movie_text_vectors: Path
     text_feature_preprocessor: Path
+    feature_coverage_report: Path
 
 
 @dataclass(frozen=True)
@@ -56,6 +57,7 @@ class DataPipelineConfig:
     negative_sample_size: int
     pseudo_text_language: str
     pseudo_text_maximum_genres: int
+    pseudo_text_minimum_genre_observations: int
     paths: DataPaths
 
 
@@ -282,6 +284,14 @@ def load_data_config(
         raise ConfigurationError(
             "pseudo-text maximum_genres must be within [1, 19]"
         )
+    pseudo_text_minimum_observations = _require_integer(
+        pseudo_text,
+        "minimum_genre_observations",
+    )
+    if pseudo_text_minimum_observations < 1:
+        raise ConfigurationError(
+            "pseudo-text minimum_genre_observations must be at least 1"
+        )
 
     paths = DataPaths(
         ratings_raw=_resolve_project_path(
@@ -374,6 +384,11 @@ def load_data_config(
             features.get("text_preprocessor_path"),
             "data.features.text_preprocessor_path",
         ),
+        feature_coverage_report=_resolve_project_path(
+            root,
+            features.get("coverage_report_path"),
+            "data.features.coverage_report_path",
+        ),
     )
 
     return DataPipelineConfig(
@@ -400,5 +415,8 @@ def load_data_config(
         negative_sample_size=negative_sample_size,
         pseudo_text_language=pseudo_text_language,
         pseudo_text_maximum_genres=pseudo_text_maximum_genres,
+        pseudo_text_minimum_genre_observations=(
+            pseudo_text_minimum_observations
+        ),
         paths=paths,
     )

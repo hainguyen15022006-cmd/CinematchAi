@@ -268,8 +268,8 @@ are: median `1995.0`, mean `1989.3911` and population standard deviation
 
 MovieLens 100K does not contain preference sentences or movie overviews. For
 the controlled Hybrid experiment, user pseudo-text is deterministically
-generated from genres with a train mean rating of at least 4.0. Users without
-a qualifying genre use their highest-rated observed genres as an explicit
+generated from genres with a train mean rating of at least 4.0 observed on at
+least 3 rated movies of that genre. Users without a qualifying genre use their highest-rated observed genres as an explicit
 fallback. Movie text contains only the catalog title and genre names.
 
 The current signed-feature-hashing encoder creates finite L2-normalized
@@ -278,8 +278,10 @@ one 128-dimensional user-movie interaction, preserving the 167-dimensional
 Hybrid contract. This transformation does not use validation/test ratings.
 
 The generated MovieLens artifact contains 943 user sentences and 1,682 movie
-documents. Eighty-five users (9.01%) have no genre reaching the 4.0 threshold
-and use the documented highest-mean observed-genre fallback. The `unknown`
+documents. With the mean-and-count rule, 235 users (24.92%) have no
+qualifying genre and use the documented highest-mean observed-genre
+fallback; the count condition removes a small-sample bias where one
+5-star rating of a rare genre outranked well-observed genres. The `unknown`
 indicator is never presented as a user preference genre.
 
 This is synthetic text derived from the same train interactions used elsewhere
@@ -300,3 +302,24 @@ movies and distinguish 1,611 movies observed during training from cold-start
 items. Full-catalog and warm-start metrics can therefore be reported without
 changing the original temporal split. The artifact contract is documented in
 `docs/EVALUATION_DATA_HANDOFF.md`.
+
+## 15. Feature coverage and fallback
+
+`scripts/report_feature_coverage.py` summarizes how the Hybrid feature
+artifacts cover users and movies. Numbers below come from
+`outputs/features/feature_coverage_report.json` on data version
+`ml100k-temporal-v1`:
+
+| Check | Value |
+|---|---:|
+| Users with pseudo-text fallback | 235 / 943 (24.92%) |
+| Users with an all-zero history profile | 0 |
+| Movies with a missing release year (median-imputed) | 1 |
+| Movies never seen in train (year imputed at transform time) | 71 |
+| Normalized release year range | [-4.75, 0.61] |
+| Normalized years beyond the warning limit (|z| > 6) | 0 |
+| Text vectors with unit L2 norm | 100% |
+
+Old movies produce large negative normalized-year values (a 1920s film is
+about -4.75 standard deviations from the train mean). These values are
+reported, not clipped; clipping would silently distort a real signal.

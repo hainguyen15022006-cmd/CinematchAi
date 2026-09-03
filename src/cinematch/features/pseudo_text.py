@@ -151,8 +151,16 @@ def build_user_pseudo_texts(
     positive_rating_threshold: float,
     maximum_genres: int,
     seed: int,
+    minimum_genre_observations: int = 1,
 ) -> pd.DataFrame:
-    """Generate English preference sentences from train ratings only."""
+    """Generate English preference sentences from train ratings only.
+
+    A genre is preferred only when its train mean rating reaches the
+    positive threshold AND the user rated at least
+    ``minimum_genre_observations`` movies of that genre. The count
+    condition avoids the small-sample bias where one 5-star rating of a
+    rare genre (for example Film-Noir) wins over well-observed genres.
+    """
     if not 1.0 <= positive_rating_threshold <= 5.0:
         raise TextFeatureError(
             "positive_rating_threshold must be within [1, 5]"
@@ -160,6 +168,10 @@ def build_user_pseudo_texts(
     if not 1 <= maximum_genres <= len(GENRE_COLUMNS):
         raise TextFeatureError(
             "maximum_genres must be within the genre count"
+        )
+    if minimum_genre_observations < 1:
+        raise TextFeatureError(
+            "minimum_genre_observations must be at least 1"
         )
 
     joined = train.loc[
@@ -218,6 +230,7 @@ def build_user_pseudo_texts(
             entry
             for entry in ranked
             if entry[1] >= positive_rating_threshold
+            and entry[2] >= minimum_genre_observations
         ]
         used_fallback = not preferred
         selected = (preferred or ranked)[:maximum_genres]
@@ -329,6 +342,7 @@ def build_text_feature_artifacts(
     positive_rating_threshold: float,
     maximum_genres: int,
     seed: int,
+    minimum_genre_observations: int = 1,
     language: str = "en",
     generated_at: datetime | None = None,
 ) -> TextFeatureArtifacts:
@@ -343,6 +357,7 @@ def build_text_feature_artifacts(
         positive_rating_threshold=positive_rating_threshold,
         maximum_genres=maximum_genres,
         seed=seed,
+        minimum_genre_observations=minimum_genre_observations,
     )
     movie_texts = build_movie_texts(movies, movie_mapping)
     encoder = PreferenceTextEncoder(
@@ -370,6 +385,7 @@ def build_text_feature_artifacts(
         "seed": seed,
         "positive_rating_threshold": positive_rating_threshold,
         "maximum_genres": maximum_genres,
+        "minimum_genre_observations": minimum_genre_observations,
         "selection_order": [
             "mean_rating_descending",
             "rating_count_descending",

@@ -81,6 +81,34 @@ def test_pseudo_text_selection_and_fallback_are_explicit() -> None:
     assert users["pseudo_text"].str.endswith(".").all()
 
 
+def test_minimum_observation_count_filters_small_sample_genres() -> None:
+    # User 1 rates one Action movie 5.0 and one Comedy movie 1.0. With a
+    # minimum of two observations the single 5-star Action rating no
+    # longer qualifies as a preference, so the user falls back instead
+    # of getting a genre backed by one lucky rating.
+    train, movies, user_mapping, movie_mapping = (
+        make_numeric_feature_fixture()
+    )
+    artifacts = build_text_feature_artifacts(
+        train,
+        movies,
+        user_mapping,
+        movie_mapping,
+        data_version="fixture-v1",
+        feature_contract_version="hybrid-v1-167",
+        positive_rating_threshold=4.0,
+        maximum_genres=3,
+        seed=42,
+        minimum_genre_observations=2,
+    )
+    users = artifacts.user_texts.set_index("user_id")
+
+    assert users.loc[1, "used_fallback"] == np.True_
+    assert artifacts.preprocessor[
+        "minimum_genre_observations"
+    ] == 2
+
+
 def test_movie_text_uses_only_title_and_genres() -> None:
     artifacts = build_fixture_text_artifacts()
     movies = artifacts.movie_texts.set_index("movie_id")

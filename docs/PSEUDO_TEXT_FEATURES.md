@@ -19,12 +19,18 @@ For every user and each of the 19 genres:
 3. Exclude the MovieLens `unknown` indicator because it is not a semantic
    preference genre. It remains present in movie metadata.
 4. Keep genres whose mean rating is at least the configured positive threshold
-   (`4.0`).
+   (`4.0`) AND that the user rated at least `minimum_genre_observations`
+   times (`3` in `configs/cinematch.yaml`). Without the count condition a
+   single 5-star rating of a rare genre (Film-Noir has only 24 catalog
+   movies) outranks well-observed genres; with it, the selected genres are
+   backed by repeated evidence.
 5. Sort by mean rating descending, count descending and fixed MovieLens genre
    order.
 6. Keep at most three genres.
-7. If none qualifies, use the highest-rated observed genres and record
-   `used_fallback=true`.
+7. If none qualifies, use the highest-rated observed genres (no count
+   condition) and record `used_fallback=true`. On the real split this
+   affects 235 of 943 users (24.92%); the flag is stored per user and
+   reported in `feature_coverage_report.json`.
 8. Choose an English template deterministically from `seed + user_id`.
 
 Example:
@@ -82,6 +88,7 @@ produce 128 dimensions and preserve the fusion contract.
 python scripts/prepare_data.py
 python scripts/prepare_numeric_features.py
 python scripts/prepare_text_features.py
+python scripts/report_feature_coverage.py
 ```
 
 Generated files under `outputs/features/`:

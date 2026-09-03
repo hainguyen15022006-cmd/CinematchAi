@@ -113,6 +113,7 @@ def _write_fixture_artifacts(
         negative_sample_size=100,
         pseudo_text_language="en",
         pseudo_text_maximum_genres=3,
+        pseudo_text_minimum_genre_observations=3,
         paths=DataPaths(
             ratings_raw=ratings_raw,
             movies_raw=movies_raw,
@@ -149,6 +150,9 @@ def _write_fixture_artifacts(
             ),
             text_feature_preprocessor=(
                 tmp_path / "outputs" / "features" / "text.json"
+            ),
+            feature_coverage_report=(
+                tmp_path / "outputs" / "features" / "coverage.json"
             ),
         ),
     )
