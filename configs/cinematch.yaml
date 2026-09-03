@@ -4,6 +4,11 @@ project:
 
 data:
   dataset_name: movielens-100k
+  version: ml100k-temporal-v1
+
+  feature_contract:
+    version: hybrid-v1-167
+    total_dimensions: 167
 
   expected:
     ratings: 100000
@@ -23,6 +28,7 @@ data:
 
   reports:
     split_audit_path: outputs/eda/split_audit.json
+    data_manifest_path: outputs/data_manifest.json
 
   temporal_split:
     strategy: per_user

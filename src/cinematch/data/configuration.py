@@ -23,6 +23,7 @@ class DataPaths:
     movies_processed: Path
     mappings: Path
     split_audit: Path
+    data_manifest: Path
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,10 @@ class DataPipelineConfig:
     """Typed values required by data preparation and auditing."""
 
     random_seed: int
+    dataset_name: str
+    data_version: str
+    feature_contract_version: str
+    feature_contract_dimensions: int
     expected_ratings: int
     expected_users: int
     expected_movies: int
@@ -65,6 +70,19 @@ def _require_integer(
             f"Configuration key '{key}' must be an integer"
         )
     return value
+
+
+def _require_string(
+    mapping: dict[str, Any],
+    key: str,
+) -> str:
+    """Return a required non-empty string."""
+    value = mapping.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ConfigurationError(
+            f"Configuration key '{key}' must be a non-empty string"
+        )
+    return value.strip()
 
 
 def _require_number(
@@ -142,6 +160,10 @@ def load_data_config(
     data = _require_mapping(payload, "data")
     evaluation = _require_mapping(payload, "evaluation")
     expected = _require_mapping(data, "expected")
+    feature_contract = _require_mapping(
+        data,
+        "feature_contract",
+    )
     raw = _require_mapping(data, "raw")
     processed = _require_mapping(data, "processed")
     split = _require_mapping(data, "temporal_split")
@@ -258,10 +280,25 @@ def load_data_config(
             reports.get("split_audit_path"),
             "data.reports.split_audit_path",
         ),
+        data_manifest=_resolve_project_path(
+            root,
+            reports.get("data_manifest_path"),
+            "data.reports.data_manifest_path",
+        ),
     )
 
     return DataPipelineConfig(
         random_seed=_require_integer(project, "random_seed"),
+        dataset_name=_require_string(data, "dataset_name"),
+        data_version=_require_string(data, "version"),
+        feature_contract_version=_require_string(
+            feature_contract,
+            "version",
+        ),
+        feature_contract_dimensions=_require_integer(
+            feature_contract,
+            "total_dimensions",
+        ),
         expected_ratings=expected_ratings,
         expected_users=expected_users,
         expected_movies=expected_movies,

@@ -50,10 +50,17 @@ def test_default_data_config_is_valid() -> None:
     assert config.expected_ratings == 100_000
     assert config.expected_users == 943
     assert config.expected_movies == 1_682
+    assert config.dataset_name == "movielens-100k"
+    assert config.data_version == "ml100k-temporal-v1"
+    assert config.feature_contract_version == "hybrid-v1-167"
+    assert config.feature_contract_dimensions == 167
     assert config.train_ratio == pytest.approx(0.8)
     assert config.positive_rating_threshold == 4.0
     assert config.paths.train == (
         PROJECT_ROOT / "data" / "processed" / "train.csv"
+    )
+    assert config.paths.data_manifest == (
+        PROJECT_ROOT / "outputs" / "data_manifest.json"
     )
 
 

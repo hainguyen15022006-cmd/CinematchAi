@@ -59,6 +59,7 @@ Generate model-ready data and run the post-split audit:
 ```bash
 python scripts/prepare_data.py
 python scripts/audit_splits.py
+python scripts/create_data_manifest.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -82,6 +83,16 @@ outputs/eda/
 ├── movies_profile.json
 └── split_audit.json
 ```
+
+```text
+outputs/
+└── data_manifest.json
+```
+
+`data_manifest.json` records the dataset and feature-contract versions,
+counts calculated from the generated files, split policy, quality checks and
+SHA-256 checksums. Its contract is documented by
+`schemas/data_manifest.schema.json`.
 
 The files above are derived data and are not committed to
 GitHub. Team members regenerate them using the scripts.

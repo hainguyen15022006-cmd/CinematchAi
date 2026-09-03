@@ -208,7 +208,16 @@ The Data handoff to AI consists of:
 - `movies.csv` with metadata and 19 genre columns.
 - `id_mappings.json` for stable ID encoding/decoding.
 - `split_audit.json` recording the post-split check results.
+- `data_manifest.json` recording versions, calculated counts and artifact
+  checksums.
 - A loader with an explicit schema in `cinematch.data.io`.
+
+The current data version is `ml100k-temporal-v1`. Hybrid side features follow
+contract `hybrid-v1-167` in this fixed order: 19 movie genres, one normalized
+release-year value, 19 train-only user genre-history values and a
+128-dimensional preference-text vector. The real feature values are produced
+in the next feature-engineering stage; the manifest fixes their interface
+before model training begins.
 
 MovieLens 100K does not provide modern posters or movie
 runtimes. Therefore, the posters and runtime constraints of the interface must
