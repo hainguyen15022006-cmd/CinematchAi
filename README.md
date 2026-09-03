@@ -63,6 +63,7 @@ python scripts/create_data_manifest.py
 python scripts/prepare_evaluation_data.py
 python scripts/prepare_numeric_features.py
 python scripts/prepare_text_features.py
+python scripts/report_feature_coverage.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -103,7 +104,8 @@ outputs/
     ├── movie_text.csv
     ├── user_text_vectors.npz
     ├── movie_text_vectors.npz
-    └── text_feature_preprocessor.json
+    ├── text_feature_preprocessor.json
+    └── feature_coverage_report.json
 ```
 
 `data_manifest.json` records the dataset and feature-contract versions,
@@ -124,6 +126,11 @@ The text-feature handoff deterministically derives English user pseudo-text
 from train ratings and movie text from catalog titles and genres. It encodes
 both sides to 128 dimensions and uses a Hadamard product to preserve the
 167-dimensional Hybrid contract. See `docs/PSEUDO_TEXT_FEATURES.md`.
+
+The coverage report summarizes fallback and imputation behaviour: pseudo-text
+fallback users (235/943), missing-year imputations, movies outside train,
+normalized-year outliers and text-vector norms. Preference genres require a
+train mean rating of at least 4.0 over at least 3 rated movies of that genre.
 
 The files above are derived data and are not committed to
 GitHub. Team members regenerate them using the scripts.
