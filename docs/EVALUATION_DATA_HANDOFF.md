@@ -6,16 +6,29 @@ This handoff gives every recommendation model the same offline-evaluation
 inputs. The files are derived from the versioned temporal split and must not
 be edited manually.
 
-Generate them after preparing the data:
+On a clean clone, first install the project and obtain MovieLens as described
+in the README. Then run the complete artifact pipeline in this order:
 
 ```bash
 python scripts/prepare_data.py
 python scripts/audit_splits.py
-python scripts/create_data_manifest.py
 python scripts/prepare_evaluation_data.py
+python scripts/prepare_numeric_features.py
+python scripts/prepare_text_features.py
+python scripts/report_feature_coverage.py
+python scripts/create_data_manifest.py
 ```
 
-The command writes four ignored artifacts under `outputs/evaluation/`.
+`prepare_evaluation_data.py` writes four ignored artifacts under
+`outputs/evaluation/`. The final manifest requires these files and the numeric
+and text artifacts, so it must not be generated earlier. If only regenerating
+the evaluation handoff, that script can run independently; regenerate the
+manifest after all artifacts are ready.
+
+For recipient confirmation, send the test result and the CLI's
+`Reproducibility fingerprint (cinematch-content-v1)` line. Compare
+`reproducibility.content_sha256`, not the first file checksum or the whole
+manifest: JSON generation timestamps legitimately change between machines.
 
 ## 2. Shared protocol
 

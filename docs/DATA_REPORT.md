@@ -335,12 +335,14 @@ change. Any change now requires a new `data.version` value in
 because trained checkpoints and evaluation results reference the current
 version.
 
-Handoff checklist (all items verified from a clean clone):
+Handoff checklist (local verification and separate recipient acceptance):
 
-- [x] `python -m pytest -q` passes (256 tests).
+- [x] `python -m pytest -q` passes; attach the latest test count/log to the handoff.
 - [x] The full pipeline regenerates every artifact from `download_data.py`
-      to `report_feature_coverage.py`.
-- [x] `data_manifest.json` artifact checksums are identical across machines.
+      through feature coverage and finally `create_data_manifest.py`.
+- [ ] Recipients confirm the same `reproducibility.content_sha256` and
+      canonicalization policy across machines. Raw file checksums for JSON
+      with different `generated_at_utc` values are not expected to match.
 - [x] Evaluation artifacts: 943 users, 836 evaluable, 107 skipped.
 - [x] Coverage report: fallback 235/943, empty histories 0, year range
       [-4.75, 0.61], unit-norm text vectors.
@@ -349,4 +351,6 @@ Handoff checklist (all items verified from a clean clone):
 - [ ] Chúc confirmed the ID mapping and manifest fields for the adapter.
 
 The last three boxes are ticked when each owner replies with their pytest
-count and the first checksum line of their regenerated manifest.
+count and the complete `Reproducibility fingerprint (cinematch-content-v1)`
+line printed by `create_data_manifest.py`. Manifest schema 1.1 adds this stable
+fingerprint without changing the frozen dataset or feature dimensions.

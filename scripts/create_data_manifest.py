@@ -59,6 +59,11 @@ def main() -> int:
         manifest["feature_contract"]["version"],
         manifest["feature_contract"]["total_dimensions"],
     )
+    LOGGER.info(
+        "Reproducibility fingerprint (%s): %s",
+        manifest["reproducibility"]["canonicalization"],
+        manifest["reproducibility"]["content_sha256"],
+    )
     LOGGER.info("Saved data manifest: %s", output_path)
     return 0
 

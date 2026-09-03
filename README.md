@@ -110,9 +110,12 @@ outputs/
 
 `data_manifest.json` is created last, after every other artifact exists. It
 records the dataset and feature-contract versions, the feature-generation
-parameters,
-counts calculated from the generated files, split policy, quality checks and
-SHA-256 checksums. Its contract is documented by
+parameters, counts calculated from the generated files, split policy, quality
+checks and SHA-256 checksums. Manifest schema 1.1 keeps exact-file `sha256`
+for integrity checks and adds `content_sha256` for reproducibility. Compare
+`reproducibility.content_sha256` between reruns or machines, not the complete
+manifest or timestamp-bearing JSON file checksums. The CLI prints this
+fingerprint after generation. Its contract is documented by
 `schemas/data_manifest.schema.json`.
 
 The evaluation handoff freezes the catalog, seen-item policy, positive test

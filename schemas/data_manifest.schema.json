@@ -14,10 +14,11 @@
     "quality",
     "evaluation_contract",
     "artifacts",
-    "feature_generation"
+    "feature_generation",
+    "reproducibility"
   ],
   "properties": {
-    "schema_version": {"const": "1.0"},
+    "schema_version": {"const": "1.1"},
     "generated_at_utc": {"type": "string", "format": "date-time"},
     "dataset": {
       "type": "object",
@@ -64,7 +65,30 @@
     "split": {"type": "object"},
     "quality": {"type": "object"},
     "evaluation_contract": {"type": "object"},
-    "artifacts": {"type": "object"},
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["path", "bytes", "sha256", "content_sha256"],
+        "properties": {
+          "path": {"type": "string"},
+          "bytes": {"type": "integer", "minimum": 0},
+          "rows": {"type": "integer", "minimum": 0},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "canonicalization", "content_sha256"],
+      "properties": {
+        "algorithm": {"const": "sha256"},
+        "canonicalization": {"const": "cinematch-content-v1"},
+        "content_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
     "feature_generation": {
       "type": "object",
       "required": [

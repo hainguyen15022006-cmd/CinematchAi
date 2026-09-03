@@ -30,6 +30,37 @@ class DataManifestError(ValueError):
     """Raised when prepared artifacts do not satisfy the data contract."""
 
 
+CONTENT_HASH_POLICY = "cinematch-content-v1"
+
+
+def _canonical_json_sha256(payload: Any) -> str:
+    """Hash JSON deterministically without changing array order or values."""
+    encoded = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"),
+        ensure_ascii=False, allow_nan=False,
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _content_sha256(path: Path, file_sha256: str) -> str:
+    """Ignore only root-level JSON generation time, never data timestamps.
+
+    Non-JSON artifacts retain their exact-byte hash. JSON whitespace and
+    object-key ordering are normalized; list ordering remains significant.
+    """
+    if path.suffix.lower() != ".json":
+        return file_sha256
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            payload.pop("generated_at_utc", None)
+        return _canonical_json_sha256(payload)
+    except (UnicodeError, ValueError) as error:
+        raise DataManifestError(
+            f"Cannot fingerprint invalid JSON artifact: {path}"
+        ) from error
+
+
 def _load_csv_with_columns(
     path: Path,
     expected_columns: tuple[str, ...],
@@ -89,6 +120,7 @@ def _artifact_entry(
         "bytes": path.stat().st_size,
         "sha256": _sha256(path),
     }
+    entry["content_sha256"] = _content_sha256(path, entry["sha256"])
     if rows is not None:
         entry["rows"] = rows
     return entry
@@ -240,8 +272,8 @@ def build_data_manifest(
             "feature scripts first."
         )
 
-    return {
-        "schema_version": "1.0",
+    manifest = {
+        "schema_version": "1.1",
         "generated_at_utc": timestamp.isoformat().replace(
             "+00:00",
             "Z",
@@ -372,6 +404,27 @@ def build_data_manifest(
             },
         },
     }
+    # Exclude file sizes, paths, byte checksums and generation timestamps:
+    # they can vary between equivalent reruns. Include the actual data,
+    # feature recipe and evaluation contract, not just the version labels.
+    reproducible_payload = {
+        key: manifest[key]
+        for key in (
+            "schema_version", "dataset", "feature_contract", "entities",
+            "split", "quality", "evaluation_contract", "feature_generation",
+        )
+    }
+    reproducible_payload["artifacts"] = {
+        name: entry["content_sha256"]
+        for name, entry in manifest["artifacts"].items()
+    }
+    reproducible_payload["canonicalization"] = CONTENT_HASH_POLICY
+    manifest["reproducibility"] = {
+        "algorithm": "sha256",
+        "canonicalization": CONTENT_HASH_POLICY,
+        "content_sha256": _canonical_json_sha256(reproducible_payload),
+    }
+    return manifest
 
 
 def save_data_manifest(

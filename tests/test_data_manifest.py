@@ -53,7 +53,12 @@ def _write_fixture_artifacts(
         features_directory / "text.json",
     )
     for path in downstream_names:
-        path.write_text(f"fixture {path.name}\n", encoding="utf-8")
+        contents = (
+            json.dumps({"fixture": path.name, "generated_at_utc": "2026-09-03T03:00:00Z"})
+            if path.suffix == ".json"
+            else f"fixture {path.name}\n"
+        )
+        path.write_text(contents, encoding="utf-8")
 
     columns = [
         "user_id",
@@ -199,6 +204,9 @@ def test_manifest_is_derived_from_artifacts(
     )
 
     assert manifest["generated_at_utc"] == "2026-09-03T03:00:00Z"
+    assert manifest["schema_version"] == "1.1"
+    assert manifest["reproducibility"]["canonicalization"] == "cinematch-content-v1"
+    assert len(manifest["reproducibility"]["content_sha256"]) == 64
     assert manifest["dataset"]["version"] == "fixture-v1"
     assert manifest["entities"] == {
         "ratings": 6,
@@ -262,10 +270,69 @@ def test_manifest_changes_when_a_feature_artifact_changes(
     )
 
     assert first != second
+    assert first["reproducibility"] != second["reproducibility"]
     assert (
         first["artifacts"]["user_text_vectors"]["sha256"]
         != second["artifacts"]["user_text_vectors"]["sha256"]
     )
+
+
+def test_fingerprint_ignores_generation_time_and_json_format(tmp_path: Path) -> None:
+    config = _write_fixture_artifacts(tmp_path)
+    first = build_data_manifest(config, tmp_path)
+    path = config.paths.numeric_feature_preprocessor
+    payload = json.loads(path.read_text())
+    payload["generated_at_utc"] = "2030-01-01T00:00:00.123456Z"
+    path.write_text(json.dumps(dict(reversed(list(payload.items()))), indent=4))
+    second = build_data_manifest(config, tmp_path)
+
+    assert first["artifacts"]["numeric_feature_preprocessor"]["sha256"] != (
+        second["artifacts"]["numeric_feature_preprocessor"]["sha256"]
+    )
+    assert first["reproducibility"] == second["reproducibility"]
+
+
+@pytest.mark.parametrize("change", ["value", "list_order", "nested_timestamp"])
+def test_fingerprint_preserves_semantic_json_changes(tmp_path: Path, change: str) -> None:
+    config = _write_fixture_artifacts(tmp_path)
+    path = config.paths.numeric_feature_preprocessor
+    payload = {"mean": 1995, "order": [1, 2], "event": {"generated_at_utc": "a"}}
+    path.write_text(json.dumps(payload))
+    first = build_data_manifest(config, tmp_path)
+    if change == "value":
+        payload["mean"] = 1996
+    elif change == "list_order":
+        payload["order"] = [2, 1]
+    else:
+        payload["event"]["generated_at_utc"] = "b"
+    path.write_text(json.dumps(payload))
+    second = build_data_manifest(config, tmp_path)
+    assert first["reproducibility"] != second["reproducibility"]
+
+
+def test_fingerprint_includes_feature_recipe(tmp_path: Path) -> None:
+    config = _write_fixture_artifacts(tmp_path)
+    first = build_data_manifest(config, tmp_path)
+    second = build_data_manifest(
+        replace(config, pseudo_text_minimum_genre_observations=1), tmp_path,
+    )
+    assert first["reproducibility"] != second["reproducibility"]
+
+
+def test_fingerprint_is_independent_of_project_location(tmp_path: Path) -> None:
+    first_root, second_root = tmp_path / "first", tmp_path / "second"
+    first_config = _write_fixture_artifacts(first_root)
+    second_config = _write_fixture_artifacts(second_root)
+    first = build_data_manifest(first_config, first_root)
+    second = build_data_manifest(second_config, second_root)
+    assert first["reproducibility"] == second["reproducibility"]
+
+
+def test_fingerprint_rejects_invalid_json(tmp_path: Path) -> None:
+    config = _write_fixture_artifacts(tmp_path)
+    config.paths.numeric_feature_preprocessor.write_text("not JSON")
+    with pytest.raises(DataManifestError, match="invalid JSON"):
+        build_data_manifest(config, tmp_path)
 
 
 def test_manifest_requires_downstream_artifacts(
