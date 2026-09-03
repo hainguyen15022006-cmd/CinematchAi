@@ -12,6 +12,7 @@
     "entities",
     "split",
     "quality",
+    "evaluation_contract",
     "artifacts"
   ],
   "properties": {
@@ -61,6 +62,7 @@
     "entities": {"type": "object"},
     "split": {"type": "object"},
     "quality": {"type": "object"},
+    "evaluation_contract": {"type": "object"},
     "artifacts": {"type": "object"}
   }
 }

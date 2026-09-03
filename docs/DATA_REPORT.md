@@ -210,6 +210,9 @@ The Data handoff to AI consists of:
 - `split_audit.json` recording the post-split check results.
 - `data_manifest.json` recording versions, calculated counts and artifact
   checksums.
+- `catalog.json`, `seen_items.json`, `positive_test_items.json` and
+  `evaluation_data_summary.json` as the reproducible input handoff to the
+  Evaluation owner.
 - A loader with an explicit schema in `cinematch.data.io`.
 
 The current data version is `ml100k-temporal-v1`. Hybrid side features follow
@@ -233,3 +236,16 @@ set for MF, GMF and NCF.
 Given the limitations above, the current data is sufficient to train and
 compare the baseline, MF, GMF and NCF on explicit ratings, while also
 providing genre features for Hybrid NCF.
+
+## 12. Evaluation eligibility handoff
+
+Using a positive threshold of 4.0, 836 of the 943 users have at least one
+positive item in the test partition. The other 107 users remain in the handoff
+with an empty positive list and must be reported as skipped for ranking
+metrics. Seen items are the union of train and validation interactions.
+
+The generated evaluation artifacts use model indices, retain all 1,682 catalog
+movies and distinguish 1,611 movies observed during training from cold-start
+items. Full-catalog and warm-start metrics can therefore be reported without
+changing the original temporal split. The artifact contract is documented in
+`docs/EVALUATION_DATA_HANDOFF.md`.

@@ -60,6 +60,7 @@ Generate model-ready data and run the post-split audit:
 python scripts/prepare_data.py
 python scripts/audit_splits.py
 python scripts/create_data_manifest.py
+python scripts/prepare_evaluation_data.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -86,13 +87,22 @@ outputs/eda/
 
 ```text
 outputs/
-└── data_manifest.json
+├── data_manifest.json
+└── evaluation/
+    ├── catalog.json
+    ├── seen_items.json
+    ├── positive_test_items.json
+    └── evaluation_data_summary.json
 ```
 
 `data_manifest.json` records the dataset and feature-contract versions,
 counts calculated from the generated files, split policy, quality checks and
 SHA-256 checksums. Its contract is documented by
 `schemas/data_manifest.schema.json`.
+
+The evaluation handoff freezes the catalog, seen-item policy, positive test
+items, eligible/skipped users and cold-start counts used by every model. Its
+contract and ownership rules are in `docs/EVALUATION_DATA_HANDOFF.md`.
 
 The files above are derived data and are not committed to
 GitHub. Team members regenerate them using the scripts.

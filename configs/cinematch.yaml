@@ -29,6 +29,7 @@ data:
   reports:
     split_audit_path: outputs/eda/split_audit.json
     data_manifest_path: outputs/data_manifest.json
+    evaluation_handoff_dir: outputs/evaluation
 
   temporal_split:
     strategy: per_user
@@ -42,6 +43,8 @@ data:
 
 evaluation:
   positive_rating_threshold: 4.0
+  top_k: 10
+  negative_sample_size: 100
 
   cold_start:
     keep_original_rows: true

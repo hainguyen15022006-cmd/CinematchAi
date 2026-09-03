@@ -266,6 +266,15 @@ def build_data_manifest(
             ),
             "test_cold_start_rows": audit.test_cold_start_rows,
         },
+        "evaluation_contract": {
+            "seen_items": "train_union_validation",
+            "positive_rating_threshold": (
+                config.positive_rating_threshold
+            ),
+            "top_k": config.evaluation_top_k,
+            "negative_sample_size": config.negative_sample_size,
+            "random_seed": config.random_seed,
+        },
         "artifacts": {
             "raw_ratings": _artifact_entry(
                 config.paths.ratings_raw,

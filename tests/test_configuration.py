@@ -56,11 +56,16 @@ def test_default_data_config_is_valid() -> None:
     assert config.feature_contract_dimensions == 167
     assert config.train_ratio == pytest.approx(0.8)
     assert config.positive_rating_threshold == 4.0
+    assert config.evaluation_top_k == 10
+    assert config.negative_sample_size == 100
     assert config.paths.train == (
         PROJECT_ROOT / "data" / "processed" / "train.csv"
     )
     assert config.paths.data_manifest == (
         PROJECT_ROOT / "outputs" / "data_manifest.json"
+    )
+    assert config.paths.evaluation_handoff_dir == (
+        PROJECT_ROOT / "outputs" / "evaluation"
     )
 
 
@@ -94,6 +99,20 @@ def test_output_path_cannot_escape_project_root(
         ConfigurationError,
         match="escapes the project root",
     ):
+        load_data_config(
+            config_path,
+            project_root=tmp_path,
+        )
+
+
+def test_non_positive_evaluation_top_k_is_rejected(
+    tmp_path: Path,
+) -> None:
+    payload = load_default_payload()
+    payload["evaluation"]["top_k"] = 0
+    config_path = write_config(tmp_path, payload)
+
+    with pytest.raises(ConfigurationError, match="top_k must be positive"):
         load_data_config(
             config_path,
             project_root=tmp_path,

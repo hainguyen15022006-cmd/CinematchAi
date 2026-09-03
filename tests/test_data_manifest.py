@@ -109,6 +109,8 @@ def _write_fixture_artifacts(
         test_ratio=0.1,
         minimum_interactions_per_user=3,
         positive_rating_threshold=4.0,
+        evaluation_top_k=10,
+        negative_sample_size=100,
         paths=DataPaths(
             ratings_raw=ratings_raw,
             movies_raw=movies_raw,
@@ -119,6 +121,9 @@ def _write_fixture_artifacts(
             mappings=mappings_path,
             split_audit=tmp_path / "outputs" / "split_audit.json",
             data_manifest=tmp_path / "outputs" / "data_manifest.json",
+            evaluation_handoff_dir=(
+                tmp_path / "outputs" / "evaluation"
+            ),
         ),
     )
 
@@ -160,6 +165,13 @@ def test_manifest_is_derived_from_artifacts(
     )
     assert manifest["feature_contract"]["total_dimensions"] == 167
     assert len(manifest["feature_contract"]["genre_names"]) == 19
+    assert manifest["evaluation_contract"] == {
+        "seen_items": "train_union_validation",
+        "positive_rating_threshold": 4.0,
+        "top_k": 10,
+        "negative_sample_size": 100,
+        "random_seed": 42,
+    }
     assert len(manifest["artifacts"]["train"]["sha256"]) == 64
 
 

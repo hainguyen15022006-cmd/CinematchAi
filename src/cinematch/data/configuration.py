@@ -24,6 +24,7 @@ class DataPaths:
     mappings: Path
     split_audit: Path
     data_manifest: Path
+    evaluation_handoff_dir: Path
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,8 @@ class DataPipelineConfig:
     test_ratio: float
     minimum_interactions_per_user: int
     positive_rating_threshold: float
+    evaluation_top_k: int
+    negative_sample_size: int
     paths: DataPaths
 
 
@@ -239,6 +242,18 @@ def load_data_config(
             "positive_rating_threshold must be within [1, 5]"
         )
 
+    evaluation_top_k = _require_integer(evaluation, "top_k")
+    negative_sample_size = _require_integer(
+        evaluation,
+        "negative_sample_size",
+    )
+    if evaluation_top_k <= 0:
+        raise ConfigurationError("top_k must be positive")
+    if negative_sample_size <= 0:
+        raise ConfigurationError(
+            "negative_sample_size must be positive"
+        )
+
     paths = DataPaths(
         ratings_raw=_resolve_project_path(
             root,
@@ -285,6 +300,11 @@ def load_data_config(
             reports.get("data_manifest_path"),
             "data.reports.data_manifest_path",
         ),
+        evaluation_handoff_dir=_resolve_project_path(
+            root,
+            reports.get("evaluation_handoff_dir"),
+            "data.reports.evaluation_handoff_dir",
+        ),
     )
 
     return DataPipelineConfig(
@@ -307,5 +327,7 @@ def load_data_config(
         test_ratio=test_ratio,
         minimum_interactions_per_user=minimum_interactions,
         positive_rating_threshold=positive_threshold,
+        evaluation_top_k=evaluation_top_k,
+        negative_sample_size=negative_sample_size,
         paths=paths,
     )
