@@ -17,6 +17,15 @@ Every model must use the same:
 - Random seed.
 - Ranking metrics.
 
+The executable implementation is `scripts/evaluate_topk.py`. It loads every
+model through `cinematch.serving.predictor.Predictor`, so model-specific code
+cannot silently change candidate construction or metric definitions.
+
+The committed defaults are `K=10`, 100 sampled negatives, positive rating
+threshold 4.0 and seeds 42/43/44. These values are read from
+`configs/cinematch.yaml`; CLI overrides are for explicit experiments and must
+be reported with their results.
+
 The candidate set must not be changed per model, because that would
 make the comparison unfair.
 

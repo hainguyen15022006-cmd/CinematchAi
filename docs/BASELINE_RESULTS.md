@@ -219,3 +219,60 @@ These results are sufficient as the week 1 baseline mark. They are not the
 final CineMatch results, because the system still needs NCF/Hybrid NCF, Top-K
 evaluation, cold-start handling and the score aggregation strategies for
 groups.
+
+## 11. Week 2 reproducibility update (seeds 42, 43 and 44)
+
+The baseline trainer now creates one checkpoint and manifest per seed. The
+manifest records the data hash, config hash, seed, model configuration,
+checkpoint path and metrics. Values below are population mean ± standard
+deviation across all three runs; no seed was discarded.
+
+| Model | Test RMSE | Test MAE |
+|---|---:|---:|
+| Most Popular | 1.1115 ± 0.0000 | 0.8989 ± 0.0000 |
+| MF | **1.0270 ± 0.0042** | **0.8145 ± 0.0035** |
+| GMF | 1.0282 ± 0.0011 | 0.8156 ± 0.0016 |
+
+MF and GMF remain effectively tied. Their mean RMSE difference is about
+0.0012, which is smaller than MF's run-to-run standard deviation; therefore
+the results do not support claiming that either model is definitively better.
+
+## 12. Shared Top-K results
+
+The evaluator uses the same per-user candidate protocol for every model:
+train + validation items are seen, test ratings >= 4 are relevant, and each
+eligible user receives all relevant items plus 100 sampled negatives. There
+are 836 evaluated users and 107 skipped users without a positive test item.
+
+| Model | Recall@10 | NDCG@10 | HitRate@10 | Coverage@10 |
+|---|---:|---:|---:|---:|
+| Most Popular | 0.2649 ± 0.0232 | 0.2357 ± 0.0162 | 0.5841 ± 0.0225 | 0.1793 ± 0.0087 |
+| MF | 0.2829 ± 0.0143 | 0.2486 ± 0.0119 | 0.6423 ± 0.0188 | 0.5351 ± 0.0131 |
+| GMF | **0.2927 ± 0.0150** | **0.2580 ± 0.0117** | **0.6447 ± 0.0176** | **0.5862 ± 0.0261** |
+
+The three evaluation seeds change both the model seed and deterministic
+negative sample. Thus the standard deviation represents the complete
+repeated protocol, not training randomness alone. GMF has the highest means,
+but MF and GMF overlap substantially across runs, so this is descriptive and
+not a claim of statistical superiority.
+
+The NCF row is intentionally absent until Công Thành supplies a real
+MovieLens checkpoint. A smoke-trained or random-tensor checkpoint must not be
+inserted into this table.
+
+## 13. Cold-start baseline
+
+MF seed 42 was evaluated with nearest-neighbour embedding fold-in. For each
+simulated new user, only the earliest 5 or 10 training ratings form the
+profile, and that user's original MovieLens identity is excluded from the 20
+neighbours. Test ratings remain held out.
+
+| Known ratings | Recall@10 | NDCG@10 | HitRate@10 | Coverage@10 |
+|---:|---:|---:|---:|---:|
+| 5 | 0.2241 | 0.1942 | 0.5574 | 0.1623 |
+| 10 | 0.2122 | 0.1802 | 0.5395 | 0.1653 |
+
+Ten ratings did not improve ranking metrics in this run. This unfavorable
+result is retained: the selected earliest ratings may be less informative,
+and KNN fold-in is a pragmatic demo mechanism rather than a learned optimal
+new-user encoder. See `docs/COLD_START.md` for limitations.

@@ -163,14 +163,19 @@ After running the Data pipeline, train Most Popular, MF and GMF on the
 same temporal split:
 
 ```bash
-python scripts/train_baseline.py
+python scripts/train_baseline.py --device cpu
 python scripts/evaluate_baselines.py
+python scripts/evaluate_topk.py --models most_popular mf gmf
+python scripts/evaluate_cold_start.py
 ```
 
-Hyperparameters are under `baselines` in `configs/cinematch.yaml`.
-Checkpoints and the MSE/RMSE/MAE table are written to `outputs/baselines/`
-and are not committed to GitHub. The theory and evaluation contract are
-described in `docs/BASELINE_THEORY.md`.
+The default configuration trains/evaluates seeds 42, 43 and 44. Hyperparameters
+are under `baselines`; Top-K and cold-start settings have one source of truth
+under `evaluation` in `configs/cinematch.yaml`. Checkpoints, manifests,
+MSE/RMSE/MAE, Recall@10, NDCG@10, HitRate@10, Coverage and cold-start results
+are written under `outputs/` and are not committed to GitHub. The predictor
+contract is described in `docs/PREDICTOR_CONTRACT.md`; cold-start assumptions
+and limitations are in `docs/COLD_START.md`.
 
 ## Running NCF, Hybrid NCF and the text demo
 

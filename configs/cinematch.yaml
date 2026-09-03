@@ -36,11 +36,16 @@ data:
 
 evaluation:
   positive_rating_threshold: 4.0
+  top_k: 10
+  negative_sample_size: 100
+  seeds: [42, 43, 44]
 
   cold_start:
     keep_original_rows: true
     report_full_metrics: true
     report_warm_start_metrics: true
+    neighbor_count: 20
+    profile_sizes: [5, 10]
 
 baselines:
   output_dir: outputs/baselines

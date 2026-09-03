@@ -21,6 +21,11 @@ class NCF(nn.Module):
         dropout: float = 0.2,
     ) -> None:
         super().__init__()
+        self.num_users = num_users
+        self.num_movies = num_items
+        self.embedding_dim = embedding_dim
+        self.layers = tuple(layers)
+        self.dropout = float(dropout)
         self.user_embed = EmbeddingLayer(num_users, embedding_dim)
         self.item_embed = EmbeddingLayer(num_items, embedding_dim)
 
@@ -45,3 +50,14 @@ class NCF(nn.Module):
         # Sigmoid maps an unbounded logit to the explicit rating range [1, 5].
         rating = 1.0 + 4.0 * torch.sigmoid(raw_score)
         return rating.squeeze(-1)
+
+    def config(self) -> dict[str, int | float | str | list[int]]:
+        """Return a checkpoint configuration compatible with Predictor."""
+        return {
+            "model": "ncf",
+            "num_users": self.num_users,
+            "num_movies": self.num_movies,
+            "embedding_dim": self.embedding_dim,
+            "layers": list(self.layers),
+            "dropout": self.dropout,
+        }

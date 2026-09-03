@@ -14,6 +14,11 @@ from cinematch.evaluation.ranking import (
     ndcg_at_k,
     recall_at_k,
 )
+from cinematch.evaluation.topk import TopKEvaluationResult, evaluate_topk
+from cinematch.evaluation.cold_start import (
+    ColdStartEvaluationResult,
+    evaluate_cold_start,
+)
 
 
 __all__ = [
@@ -27,4 +32,8 @@ __all__ = [
     "ndcg_at_k",
     "recall_at_k",
     "sample_negative_items",
+    "TopKEvaluationResult",
+    "evaluate_topk",
+    "ColdStartEvaluationResult",
+    "evaluate_cold_start",
 ]
