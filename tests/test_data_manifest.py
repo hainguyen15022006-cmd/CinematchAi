@@ -124,6 +124,15 @@ def _write_fixture_artifacts(
             evaluation_handoff_dir=(
                 tmp_path / "outputs" / "evaluation"
             ),
+            movie_numeric_features=(
+                tmp_path / "outputs" / "features" / "movies.csv"
+            ),
+            user_genre_profiles=(
+                tmp_path / "outputs" / "features" / "users.csv"
+            ),
+            numeric_feature_preprocessor=(
+                tmp_path / "outputs" / "features" / "preprocessor.json"
+            ),
         ),
     )
 

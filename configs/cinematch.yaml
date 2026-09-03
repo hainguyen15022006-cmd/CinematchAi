@@ -31,6 +31,11 @@ data:
     data_manifest_path: outputs/data_manifest.json
     evaluation_handoff_dir: outputs/evaluation
 
+  features:
+    movie_numeric_path: outputs/features/movie_numeric_features.csv
+    user_genre_profiles_path: outputs/features/user_genre_profiles.csv
+    numeric_preprocessor_path: outputs/features/numeric_feature_preprocessor.json
+
   temporal_split:
     strategy: per_user
     order_column: timestamp

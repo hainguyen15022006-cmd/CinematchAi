@@ -119,3 +119,42 @@ Every user appears in both per-user files. A user without a positive test item
 has an empty `movie_indices` list and is counted under
 `skipped_without_positive`; the record is not removed. See
 `docs/EVALUATION_DATA_HANDOFF.md` for the complete contract.
+
+## 9. Hybrid numeric-feature artifacts
+
+`scripts/prepare_numeric_features.py` fits preprocessing on `train.csv` only
+and creates three files under `outputs/features/`.
+
+### `movie_numeric_features.csv`
+
+| Columns | Data type | Meaning |
+|---|---|---|
+| `movie_id` | `int64` | Original MovieLens ID |
+| `movie_index` | `int64` | Contiguous model index |
+| 19 genre columns | `float32` | Movie multi-hot genre vector |
+| `normalized_release_year` | `float32` | Median-imputed, z-score normalized year |
+
+The median, mean and population standard deviation are fitted using only the
+unique movies occurring in the training partition. The saved transformation
+is then applied to the complete catalog.
+
+### `user_genre_profiles.csv`
+
+| Columns | Data type | Meaning |
+|---|---|---|
+| `user_id` | `int64` | Original MovieLens user ID |
+| `user_index` | `int64` | Contiguous model index |
+| 19 `history_<genre>` columns | `float32` | Train-only preference score per genre |
+
+For each training rating, the contribution is `(rating - 3) / 2`. The profile
+value is the mean contribution over movies belonging to that genre. Therefore,
+values lie in `[-1, 1]`; a genre unseen by a user has the neutral value `0`.
+
+### `numeric_feature_preprocessor.json`
+
+This versioned artifact records the ordered 39-column contract, release-year
+statistics, history formula, fitting partition and output row counts. Training
+and serving must load the same artifact so that feature meanings do not drift.
+Its JSON structure is documented by
+`schemas/numeric_feature_preprocessor.schema.json`; full usage is described in
+`docs/NUMERIC_FEATURES.md`.

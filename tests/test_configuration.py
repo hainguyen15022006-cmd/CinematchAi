@@ -67,6 +67,24 @@ def test_default_data_config_is_valid() -> None:
     assert config.paths.evaluation_handoff_dir == (
         PROJECT_ROOT / "outputs" / "evaluation"
     )
+    assert config.paths.movie_numeric_features == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "movie_numeric_features.csv"
+    )
+    assert config.paths.user_genre_profiles == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "user_genre_profiles.csv"
+    )
+    assert config.paths.numeric_feature_preprocessor == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "numeric_feature_preprocessor.json"
+    )
 
 
 def test_invalid_split_ratios_are_rejected(

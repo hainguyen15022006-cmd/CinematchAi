@@ -25,6 +25,9 @@ class DataPaths:
     split_audit: Path
     data_manifest: Path
     evaluation_handoff_dir: Path
+    movie_numeric_features: Path
+    user_genre_profiles: Path
+    numeric_feature_preprocessor: Path
 
 
 @dataclass(frozen=True)
@@ -171,6 +174,7 @@ def load_data_config(
     processed = _require_mapping(data, "processed")
     split = _require_mapping(data, "temporal_split")
     reports = _require_mapping(data, "reports")
+    features = _require_mapping(data, "features")
 
     expected_ratings = _require_integer(expected, "ratings")
     expected_users = _require_integer(expected, "users")
@@ -304,6 +308,21 @@ def load_data_config(
             root,
             reports.get("evaluation_handoff_dir"),
             "data.reports.evaluation_handoff_dir",
+        ),
+        movie_numeric_features=_resolve_project_path(
+            root,
+            features.get("movie_numeric_path"),
+            "data.features.movie_numeric_path",
+        ),
+        user_genre_profiles=_resolve_project_path(
+            root,
+            features.get("user_genre_profiles_path"),
+            "data.features.user_genre_profiles_path",
+        ),
+        numeric_feature_preprocessor=_resolve_project_path(
+            root,
+            features.get("numeric_preprocessor_path"),
+            "data.features.numeric_preprocessor_path",
         ),
     )
 

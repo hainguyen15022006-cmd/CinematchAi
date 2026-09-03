@@ -213,14 +213,17 @@ The Data handoff to AI consists of:
 - `catalog.json`, `seen_items.json`, `positive_test_items.json` and
   `evaluation_data_summary.json` as the reproducible input handoff to the
   Evaluation owner.
+- `movie_numeric_features.csv`, `user_genre_profiles.csv` and
+  `numeric_feature_preprocessor.json` as the leakage-safe numeric-feature
+  handoff for Hybrid NCF.
 - A loader with an explicit schema in `cinematch.data.io`.
 
 The current data version is `ml100k-temporal-v1`. Hybrid side features follow
 contract `hybrid-v1-167` in this fixed order: 19 movie genres, one normalized
 release-year value, 19 train-only user genre-history values and a
-128-dimensional preference-text vector. The real feature values are produced
-in the next feature-engineering stage; the manifest fixes their interface
-before model training begins.
+128-dimensional preference-text vector. The 39 numeric values are now produced
+by `scripts/prepare_numeric_features.py`; the text vector remains a separate
+input owned by the Hybrid/Text training pipeline.
 
 MovieLens 100K does not provide modern posters or movie
 runtimes. Therefore, the posters and runtime constraints of the interface must
@@ -235,7 +238,29 @@ set for MF, GMF and NCF.
 
 Given the limitations above, the current data is sufficient to train and
 compare the baseline, MF, GMF and NCF on explicit ratings, while also
-providing genre features for Hybrid NCF.
+providing reproducible numeric features for Hybrid NCF.
+
+## 13. Leakage-safe numeric features
+
+The numeric Hybrid NCF pipeline fits two transformations from the training
+partition and then freezes them:
+
+- Release year uses the median for missing values and population z-score
+  normalization. All statistics use only unique movies present in train.
+- User genre history uses only train ratings. Ratings are centered with
+  `(rating - 3) / 2`, averaged separately for each of the 19 genres and set to
+  zero where a user has not observed a genre.
+
+The output contains 1,682 movie rows, 943 user rows and a fixed width of 39
+numeric features. Validation and test ratings never contribute to fitted
+statistics or user profiles. Automated leakage tests change metadata for a
+movie absent from train and verify that the fitted scaler and profiles remain
+unchanged.
+
+For the current MovieLens preparation, the train-only release-year statistics
+are: median `1995.0`, mean `1989.3911` and population standard deviation
+`14.1825`. They are generated values recorded at higher precision in
+`numeric_feature_preprocessor.json`, not manually configured constants.
 
 ## 12. Evaluation eligibility handoff
 

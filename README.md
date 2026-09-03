@@ -61,6 +61,7 @@ python scripts/prepare_data.py
 python scripts/audit_splits.py
 python scripts/create_data_manifest.py
 python scripts/prepare_evaluation_data.py
+python scripts/prepare_numeric_features.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -88,11 +89,15 @@ outputs/eda/
 ```text
 outputs/
 ├── data_manifest.json
-└── evaluation/
+├── evaluation/
     ├── catalog.json
     ├── seen_items.json
     ├── positive_test_items.json
     └── evaluation_data_summary.json
+└── features/
+    ├── movie_numeric_features.csv
+    ├── user_genre_profiles.csv
+    └── numeric_feature_preprocessor.json
 ```
 
 `data_manifest.json` records the dataset and feature-contract versions,
@@ -103,6 +108,11 @@ SHA-256 checksums. Its contract is documented by
 The evaluation handoff freezes the catalog, seen-item policy, positive test
 items, eligible/skipped users and cold-start counts used by every model. Its
 contract and ownership rules are in `docs/EVALUATION_DATA_HANDOFF.md`.
+
+The numeric-feature handoff contains the 39 real numeric inputs for Hybrid
+NCF: 19 movie genres, one train-normalized release year and 19 train-only user
+genre-history values. Its formulas, fixed column order and ownership rules are
+in `docs/NUMERIC_FEATURES.md`.
 
 The files above are derived data and are not committed to
 GitHub. Team members regenerate them using the scripts.
@@ -122,6 +132,8 @@ user_id, movie_id, user_index, movie_index, rating, timestamp
   default embedding feature.
 - Hybrid NCF can join the 19 genre columns from `movies.csv` via
   `movie_id`.
+- Hybrid NCF must load the generated numeric artifacts instead of fitting
+  release-year or history statistics again inside the training script.
 
 Only `train.csv` is used to fit model parameters.
 `validation.csv` is used for hyperparameter selection or early

@@ -71,16 +71,33 @@ predictions = model(user_indices, movie_indices, side_features)
 `side_features` must have shape `[batch_size, 167]`. Hybrid returns a tensor of shape
 `[batch_size]` and each prediction lies in the range 1–5.
 
-## 5. Week 1 scope
+## 5. Current implementation status
 
-Smoke training uses fake metadata of the correct shape and real text vectors to demonstrate
-that the entire forward/backward pass runs. It is not yet a MovieLens experimental
-result. Joining real metadata and computing leakage-free history belong to the
-next training pipeline.
+Week 1 smoke training used numeric tensors of the correct shape to demonstrate
+that the forward/backward pass runs. The Data pipeline now generates the real
+39 numeric dimensions from MovieLens:
+
+```bash
+python scripts/prepare_numeric_features.py
+```
+
+Training code loads the resulting movie table, user table and frozen
+preprocessor contract, then joins them to interactions with
+`build_interaction_numeric_features`. It must append the separate 128-value
+text vector through `build_hybrid_side_features`; it must not recalculate
+release-year or user-history statistics from validation or test.
+
+This feature preparation is not itself a trained Hybrid result. Official
+training, ablations and evaluation still require the shared evaluation
+protocol and must report measured values rather than smoke-test values.
 
 Run:
 
 ```bash
 python scripts/train_hybrid_ncf.py
-python -m pytest tests/test_hybrid_ncf.py tests/test_text_encoder.py -v
+python -m pytest \
+  tests/test_numeric_features.py \
+  tests/test_feature_leakage.py \
+  tests/test_hybrid_ncf.py \
+  tests/test_text_encoder.py -v
 ```
