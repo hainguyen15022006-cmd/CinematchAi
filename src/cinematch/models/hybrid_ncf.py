@@ -40,7 +40,11 @@ class HybridNCF(nn.Module):
         user_indices: torch.Tensor,
         item_indices: torch.Tensor,
         side_features: torch.Tensor,
+        feature_mask: nn.Module | None = None,
     ) -> torch.Tensor:
+        if feature_mask is not None:
+            side_features = feature_mask(side_features)
+
         if side_features.ndim != 2:
             raise ValueError("side_features must have shape [batch, features]")
         if side_features.shape[0] != user_indices.shape[0]:
