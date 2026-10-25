@@ -1,22 +1,41 @@
+import type { KeyboardEvent } from 'react'
+
 interface Props {
   value?: number
+  label?: string
   disabled?: boolean
   onChange: (rating: number) => void
 }
 
-export function StarRating({ value = 0, disabled = false, onChange }: Props) {
+export function StarRating({ value = 0, label = 'Movie rating', disabled = false, onChange }: Props) {
+  function handleKeyDown(event: KeyboardEvent<HTMLButtonElement>, star: number) {
+    if (!['ArrowLeft', 'ArrowDown', 'ArrowRight', 'ArrowUp'].includes(event.key)) return
+    event.preventDefault()
+    const direction = event.key === 'ArrowRight' || event.key === 'ArrowUp' ? 1 : -1
+    const nextRating = Math.min(5, Math.max(1, star + direction))
+    onChange(nextRating)
+    event.currentTarget.parentElement
+      ?.querySelector<HTMLButtonElement>(`[data-rating="${nextRating}"]`)
+      ?.focus()
+  }
+
   return (
-    <div className="star-rating" aria-label={`Rating ${value}/5`}>
+    <div className="star-rating" role="radiogroup" aria-label={`${label}. Currently ${value}/5 stars`} aria-busy={disabled}>
       {[1, 2, 3, 4, 5].map((star) => (
         <button
           type="button"
+          role="radio"
           key={star}
           className={star <= value ? 'star active' : 'star'}
-          aria-label={`${star} ${star === 1 ? 'star' : 'stars'}`}
+          data-rating={star}
+          aria-label={`Rate ${star} ${star === 1 ? 'star' : 'stars'}`}
+          aria-checked={value === star}
+          tabIndex={value === star || (value === 0 && star === 1) ? 0 : -1}
           disabled={disabled}
           onClick={() => onChange(star)}
+          onKeyDown={(event) => handleKeyDown(event, star)}
         >
-          ★
+          <span aria-hidden="true">★</span>
         </button>
       ))}
     </div>
