@@ -23,11 +23,11 @@ def main():
         text_similarity=dummy_text_sim,
     )
 
-    print(f"[*] Total Side Feature Dimension: {HYBRID_SIDE_FEATURE_DIM}")
+    print(f"[*] Side Feature Dimension (contract): {HYBRID_SIDE_FEATURE_DIM}")
     print(f"[*] Combined Hybrid Vector Shape: {hybrid_vec.shape}")
     assert hybrid_vec.shape == (batch_size, 168), "Shape mismatch! Must be (batch_size, 168)"
 
-    # Test Masking: Tắt nhóm Text Vector (128 chiều)
+    # Masking check: switch off the 128-dimensional text group.
     mask = FeatureMask(use_text=False)
     masked_vec = mask(hybrid_vec)
 
