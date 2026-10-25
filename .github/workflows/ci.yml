@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, cinematchdeploy]
   pull_request:
-    branches: [main]
+    branches: [main, cinematchdeploy]
 
 jobs:
   backend-test:
@@ -23,6 +23,8 @@ jobs:
       - name: Install project (editable, dev extras)
         run: |
           python -m pip install --upgrade pip
+          # CPU-only PyTorch keeps the CI install small and fast.
+          python -m pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.2,<3"
           python -m pip install -e ".[dev]"
 
       - name: Run pytest

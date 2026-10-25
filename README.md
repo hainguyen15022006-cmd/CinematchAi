@@ -204,11 +204,31 @@ The Backend uses FastAPI, SQLAlchemy and SQLite for the MVP. Authentication
 uses JWT; passwords are hashed with Argon2. `movie_id` in the API is always
 the original MovieLens ID, not the internal `movies.id` key.
 
-The Frontend can integrate early via `POST /recommend/mock`. This endpoint
-returns a deterministic Top-K according to contract v1 without requiring a
-model or database. Endpoint details, the room/vote flow and ID conventions
-are in `docs/BACKEND_API.md`; the Group Recommendation schema is in
-`docs/RECOMMENDATION_CONTRACT.md`.
+`scripts/seed_movies.py` is optional during development: when the database
+has no movie yet, the API seeds the catalog itself on startup, from
+`data/processed/movies.csv` or from the committed serving bundle.
+
+`POST /recommend/mock` still returns a deterministic Top-K from fixed data
+and is kept as a contract demo. The real flow uses the trained model:
+
+| Step | Endpoint |
+|---|---|
+| Host starts the run | `POST /rooms/{id}/recommend` |
+| Anyone reads the Top-K | `GET /runs/{id}/recommendations` |
+| Member votes | `POST /runs/{id}/votes` |
+| Host closes voting | `POST /runs/{id}/finalize` |
+| Everyone sees the winner | `GET /runs/{id}/result` |
+
+`GET /recommend/status` reports whether the model is loadable, which is the
+quickest check after a deployment.
+
+Each member is scored separately through `cinematch.serving.Predictor`
+using the cold-start path, because a CineMatch account does not exist in
+MovieLens. The room's strategy, stored in its constraints, then aggregates
+those predictions into one ranking. Endpoint details, the room/vote flow
+and ID conventions are in `docs/BACKEND_API.md`; the Group Recommendation
+schema is in `docs/RECOMMENDATION_CONTRACT.md`; the cold-start assumptions
+are in `docs/COLD_START.md`.
 
 How the branches were merged and the results of the week 1 joint
 Frontend–Backend testing are recorded in `docs/FE_BE_INTEGRATION_WEEK1.md`.
@@ -270,3 +290,33 @@ Do not commit:
 - virtual environments, caches or model checkpoints.
 
 `.gitkeep` files are kept to preserve the directory structure.
+
+## Serving bundle
+
+`artifacts/serving/` is the only derived data committed to Git, about
+645 KB. It holds the trained checkpoint, the train-only ratings used for
+cold-start fold-in, the ID mapping and the movie catalog, so the Backend
+can score a group without the data pipeline. Rebuild it after retraining:
+
+```bash
+python scripts/build_serving_bundle.py
+```
+
+## Running the Frontend
+
+```bash
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+`VITE_API_BASE_URL` points the Frontend at the Backend and defaults to
+`http://127.0.0.1:8000`.
+
+## Deployment
+
+The Frontend is deployed to Vercel and the Backend to Render from the
+`Dockerfile`. The step-by-step guide, including the environment variables,
+the free-plan limits and how to check a deployment, is in
+`docs/DEPLOYMENT.md`.

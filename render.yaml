@@ -1,0 +1,24 @@
+# Render Blueprint for the CineMatch API.
+# Render dashboard -> New -> Blueprint -> pick this repository and branch.
+services:
+  - type: web
+    name: cinematch-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      # Generated once by Render; never commit a real secret.
+      - key: SECRET_KEY
+        generateValue: true
+      # Set this to your Vercel URL as a JSON list, for example:
+      # ["https://cinematch-ai.vercel.app"]
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
+      # Lets Vercel preview deployments call the API as well.
+      - key: BACKEND_CORS_ORIGIN_REGEX
+        value: https://.*\.vercel\.app
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "1440"

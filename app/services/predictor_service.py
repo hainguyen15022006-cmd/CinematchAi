@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Mapping, Sequence
 
 import pandas as pd
+import torch
 
 from app.core.config import settings
 from cinematch.recommendation.model_scores import (
@@ -210,6 +211,10 @@ def load_recommender() -> GroupRecommender:
                     f"Serving artifact is missing: {path}. See "
                     "docs/DEPLOYMENT.md for how to create the bundle."
                 )
+
+        # One thread is enough for single-row scoring and keeps the
+        # memory and CPU use low on a small hosting plan.
+        torch.set_num_threads(1)
 
         mapping = MovieIndexMapping.from_mapping_file(mappings_path)
         training_ratings = _read_training_ratings(ratings_path)
