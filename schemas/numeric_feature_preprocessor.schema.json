@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cinematch.local/schemas/numeric_feature_preprocessor.schema.json",
+  "title": "CineMatch Numeric Feature Preprocessor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "generated_at_utc",
+    "data_version",
+    "feature_contract_version",
+    "fit_partition",
+    "numeric_feature_dimensions",
+    "ordered_feature_columns",
+    "genre_order",
+    "release_year",
+    "history_profile",
+    "rows"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "generated_at_utc": {"type": "string", "format": "date-time"},
+    "data_version": {"type": "string", "minLength": 1},
+    "feature_contract_version": {"const": "hybrid-v1-167"},
+    "fit_partition": {"const": "train"},
+    "numeric_feature_dimensions": {"const": 39},
+    "ordered_feature_columns": {
+      "type": "array",
+      "minItems": 39,
+      "maxItems": 39,
+      "items": {"type": "string"}
+    },
+    "genre_order": {
+      "type": "array",
+      "minItems": 19,
+      "maxItems": 19,
+      "items": {"type": "string"}
+    },
+    "release_year": {
+      "type": "object",
+      "required": [
+        "fit_partition",
+        "missing_strategy",
+        "scaling",
+        "median",
+        "mean",
+        "standard_deviation",
+        "fit_movie_count",
+        "fit_non_missing_count"
+      ],
+      "properties": {
+        "fit_partition": {"const": "train"},
+        "missing_strategy": {"const": "train_median"},
+        "scaling": {"const": "z_score_population"},
+        "median": {"type": "number"},
+        "mean": {"type": "number"},
+        "standard_deviation": {"type": "number", "exclusiveMinimum": 0},
+        "fit_movie_count": {"type": "integer", "minimum": 1},
+        "fit_non_missing_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "history_profile": {
+      "type": "object",
+      "required": [
+        "fit_partition",
+        "rating_transform",
+        "range",
+        "unobserved_genre_value",
+        "aggregation"
+      ]
+    },
+    "rows": {
+      "type": "object",
+      "required": ["movie_numeric_features", "user_genre_profiles"],
+      "properties": {
+        "movie_numeric_features": {"type": "integer", "minimum": 1},
+        "user_genre_profiles": {"type": "integer", "minimum": 1}
+      }
+    }
+  }
+}

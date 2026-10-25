@@ -59,6 +59,11 @@ Generate model-ready data and run the post-split audit:
 ```bash
 python scripts/prepare_data.py
 python scripts/audit_splits.py
+python scripts/prepare_evaluation_data.py
+python scripts/prepare_numeric_features.py
+python scripts/prepare_text_features.py
+python scripts/report_feature_coverage.py
+python scripts/create_data_manifest.py
 ```
 
 Paths, split ratios, expected counts and the positive
@@ -83,6 +88,55 @@ outputs/eda/
 └── split_audit.json
 ```
 
+```text
+outputs/
+├── data_manifest.json
+├── evaluation/
+    ├── catalog.json
+    ├── seen_items.json
+    ├── positive_test_items.json
+    └── evaluation_data_summary.json
+└── features/
+    ├── movie_numeric_features.csv
+    ├── user_genre_profiles.csv
+    ├── numeric_feature_preprocessor.json
+    ├── user_pseudo_text.csv
+    ├── movie_text.csv
+    ├── user_text_vectors.npz
+    ├── movie_text_vectors.npz
+    ├── text_feature_preprocessor.json
+    └── feature_coverage_report.json
+```
+
+`data_manifest.json` is created last, after every other artifact exists. It
+records the dataset and feature-contract versions, the feature-generation
+parameters, counts calculated from the generated files, split policy, quality
+checks and SHA-256 checksums. Manifest schema 1.1 keeps exact-file `sha256`
+for integrity checks and adds `content_sha256` for reproducibility. Compare
+`reproducibility.content_sha256` between reruns or machines, not the complete
+manifest or timestamp-bearing JSON file checksums. The CLI prints this
+fingerprint after generation. Its contract is documented by
+`schemas/data_manifest.schema.json`.
+
+The evaluation handoff freezes the catalog, seen-item policy, positive test
+items, eligible/skipped users and cold-start counts used by every model. Its
+contract and ownership rules are in `docs/EVALUATION_DATA_HANDOFF.md`.
+
+The numeric-feature handoff contains the 39 real numeric inputs for Hybrid
+NCF: 19 movie genres, one train-normalized release year and 19 train-only user
+genre-history values. Its formulas, fixed column order and ownership rules are
+in `docs/NUMERIC_FEATURES.md`.
+
+The text-feature handoff deterministically derives English user pseudo-text
+from train ratings and movie text from catalog titles and genres. It encodes
+both sides to 128 dimensions and uses a Hadamard product to preserve the
+167-dimensional Hybrid contract. See `docs/PSEUDO_TEXT_FEATURES.md`.
+
+The coverage report summarizes fallback and imputation behaviour: pseudo-text
+fallback users (235/943), missing-year imputations, movies outside train,
+normalized-year outliers and text-vector norms. Preference genres require a
+train mean rating of at least 4.0 over at least 3 rated movies of that genre.
+
 The files above are derived data and are not committed to
 GitHub. Team members regenerate them using the scripts.
 
@@ -101,6 +155,8 @@ user_id, movie_id, user_index, movie_index, rating, timestamp
   default embedding feature.
 - Hybrid NCF can join the 19 genre columns from `movies.csv` via
   `movie_id`.
+- Hybrid NCF must load the generated numeric artifacts instead of fitting
+  release-year or history statistics again inside the training script.
 
 Only `train.csv` is used to fit model parameters.
 `validation.csv` is used for hyperparameter selection or early
@@ -175,7 +231,8 @@ under `evaluation` in `configs/cinematch.yaml`. Checkpoints, manifests,
 MSE/RMSE/MAE, Recall@10, NDCG@10, HitRate@10, Coverage and cold-start results
 are written under `outputs/` and are not committed to GitHub. The predictor
 contract is described in `docs/PREDICTOR_CONTRACT.md`; cold-start assumptions
-and limitations are in `docs/COLD_START.md`.
+and limitations are in `docs/COLD_START.md`. The theory behind the baselines is
+described in `docs/BASELINE_THEORY.md`.
 
 ## Running NCF, Hybrid NCF and the text demo
 

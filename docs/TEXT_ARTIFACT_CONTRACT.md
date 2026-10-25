@@ -59,3 +59,17 @@ Feature hashing recognizes identical tokens and phrases but does not understand 
 sentences are synonymous. If it is replaced by PhoBERT or a Sentence Transformer, the team must
 bump `schema_version`, declare the model name/revision and keep the principles of a
 fixed dimension, deterministic inference and artifact validation.
+
+## 6. Dataset-level text artifacts
+
+The encoder artifact above describes only the encoder. The Data pipeline uses
+it to create user and movie text matrices with:
+
+```bash
+python scripts/prepare_text_features.py
+```
+
+The generation rules, train-only provenance, seed, source-table counts and
+Hadamard fusion policy are saved separately in
+`outputs/features/text_feature_preprocessor.json`. The complete handoff is
+documented in `docs/PSEUDO_TEXT_FEATURES.md`.

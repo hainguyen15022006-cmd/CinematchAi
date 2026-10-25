@@ -16,7 +16,7 @@ At test time dropout is off, and the model ends up not just memorizing the train
 
 ### Q3. Where do metadata and text get merged into Hybrid?
 
-Right at the concatenation step, before the MLP. Normal NCF only concats `[user_emb, item_emb]`. Hybrid adds a side feature vector on top: `[user_emb, item_emb, side_feature]`. The week-one contract now includes genres, normalized year, user genre history and the Vietnamese text vector; see `docs/HYBRID_DESIGN.md`.
+Right at the concatenation step, before the MLP. Normal NCF only concats `[user_emb, item_emb]`. Hybrid adds a side feature vector on top: `[user_emb, item_emb, side_feature]`. The fixed contract includes genres, normalized year, train-only user genre history and a user-movie text interaction; see `docs/HYBRID_DESIGN.md`.
 
 Because it's merged at the input, the first MLP layer's input size has to match the new total length, which is the easiest place to get a shape mismatch if you forget to update it.
 

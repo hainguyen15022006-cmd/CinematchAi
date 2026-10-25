@@ -208,7 +208,24 @@ The Data handoff to AI consists of:
 - `movies.csv` with metadata and 19 genre columns.
 - `id_mappings.json` for stable ID encoding/decoding.
 - `split_audit.json` recording the post-split check results.
+- `data_manifest.json` recording versions, calculated counts and artifact
+  checksums.
+- `catalog.json`, `seen_items.json`, `positive_test_items.json` and
+  `evaluation_data_summary.json` as the reproducible input handoff to the
+  Evaluation owner.
+- `movie_numeric_features.csv`, `user_genre_profiles.csv` and
+  `numeric_feature_preprocessor.json` as the leakage-safe numeric-feature
+  handoff for Hybrid NCF.
+- User/movie source-text CSVs, 128-dimensional vector archives and
+  `text_feature_preprocessor.json` as the deterministic text handoff.
 - A loader with an explicit schema in `cinematch.data.io`.
+
+The current data version is `ml100k-temporal-v1`. Hybrid side features follow
+contract `hybrid-v1-167` in this fixed order: 19 movie genres, one normalized
+release-year value, 19 train-only user genre-history values and a
+128-dimensional user-movie text-interaction vector. The 39 numeric values are
+produced by `scripts/prepare_numeric_features.py`; the text sources and vectors
+are produced by `scripts/prepare_text_features.py`.
 
 MovieLens 100K does not provide modern posters or movie
 runtimes. Therefore, the posters and runtime constraints of the interface must
@@ -223,4 +240,117 @@ set for MF, GMF and NCF.
 
 Given the limitations above, the current data is sufficient to train and
 compare the baseline, MF, GMF and NCF on explicit ratings, while also
-providing genre features for Hybrid NCF.
+providing reproducible numeric features for Hybrid NCF.
+
+## 13. Leakage-safe numeric features
+
+The numeric Hybrid NCF pipeline fits two transformations from the training
+partition and then freezes them:
+
+- Release year uses the median for missing values and population z-score
+  normalization. All statistics use only unique movies present in train.
+- User genre history uses only train ratings. Ratings are centered with
+  `(rating - 3) / 2`, averaged separately for each of the 19 genres and set to
+  zero where a user has not observed a genre.
+
+The output contains 1,682 movie rows, 943 user rows and a fixed width of 39
+numeric features. Validation and test ratings never contribute to fitted
+statistics or user profiles. Automated leakage tests change metadata for a
+movie absent from train and verify that the fitted scaler and profiles remain
+unchanged.
+
+For the current MovieLens preparation, the train-only release-year statistics
+are: median `1995.0`, mean `1989.3911` and population standard deviation
+`14.1825`. They are generated values recorded at higher precision in
+`numeric_feature_preprocessor.json`, not manually configured constants.
+
+## 14. Pseudo-text and movie text
+
+MovieLens 100K does not contain preference sentences or movie overviews. For
+the controlled Hybrid experiment, user pseudo-text is deterministically
+generated from genres with a train mean rating of at least 4.0 observed on at
+least 3 rated movies of that genre. Users without a qualifying genre use their highest-rated observed genres as an explicit
+fallback. Movie text contains only the catalog title and genre names.
+
+The current signed-feature-hashing encoder creates finite L2-normalized
+128-dimensional user and movie vectors. Element-wise multiplication creates
+one 128-dimensional user-movie interaction, preserving the 167-dimensional
+Hybrid contract. This transformation does not use validation/test ratings.
+
+The generated MovieLens artifact contains 943 user sentences and 1,682 movie
+documents. With the mean-and-count rule, 235 users (24.92%) have no
+qualifying genre and use the documented highest-mean observed-genre
+fallback; the count condition removes a small-sample bias where one
+5-star rating of a rare genre outranked well-observed genres. The `unknown`
+indicator is never presented as a user preference genre.
+
+This is synthetic text derived from the same train interactions used elsewhere
+in the model. It is not independent natural-language evidence and does not by
+itself support a claim that real free-form text improves recommendations. Any
+RQ2 conclusion must identify the encoder, compare a no-text mask under the same
+protocol and state this limitation.
+
+## 12. Evaluation eligibility handoff
+
+Using a positive threshold of 4.0, 836 of the 943 users have at least one
+positive item in the test partition. The other 107 users remain in the handoff
+with an empty positive list and must be reported as skipped for ranking
+metrics. Seen items are the union of train and validation interactions.
+
+The generated evaluation artifacts use model indices, retain all 1,682 catalog
+movies and distinguish 1,611 movies observed during training from cold-start
+items. Full-catalog and warm-start metrics can therefore be reported without
+changing the original temporal split. The artifact contract is documented in
+`docs/EVALUATION_DATA_HANDOFF.md`.
+
+## 15. Feature coverage and fallback
+
+`scripts/report_feature_coverage.py` summarizes how the Hybrid feature
+artifacts cover users and movies. Numbers below come from
+`outputs/features/feature_coverage_report.json` on data version
+`ml100k-temporal-v1`:
+
+| Check | Value |
+|---|---:|
+| Users with pseudo-text fallback | 235 / 943 (24.92%) |
+| Users with an all-zero history profile | 0 |
+| Movies with a missing release year (median-imputed) | 1 |
+| Movies never seen in train (year imputed at transform time) | 71 |
+| Normalized release year range | [-4.75, 0.61] |
+| Normalized years beyond the warning limit (|z| > 6) | 0 |
+| Text vectors with unit L2 norm | 100% |
+
+Old movies produce large negative normalized-year values (a 1920s film is
+about -4.75 standard deviations from the train mean). These values are
+reported, not clipped; clipping would silently distort a real signal.
+
+## 16. Data freeze and handoff checklist
+
+As of the end of the acceleration-week Data track, data version
+`ml100k-temporal-v1` and feature contract `hybrid-v1-167` are frozen.
+The temporal split, the processed schemas, the ID mappings, the 39-column
+numeric layout and the 128-dimensional text-interaction block may no longer
+change. Any change now requires a new `data.version` value in
+`configs/cinematch.yaml`, a regenerated manifest and the team's agreement,
+because trained checkpoints and evaluation results reference the current
+version.
+
+Handoff checklist (local verification and separate recipient acceptance):
+
+- [x] `python -m pytest -q` passes; attach the latest test count/log to the handoff.
+- [x] The full pipeline regenerates every artifact from `download_data.py`
+      through feature coverage and finally `create_data_manifest.py`.
+- [ ] Recipients confirm the same `reproducibility.content_sha256` and
+      canonicalization policy across machines. Raw file checksums for JSON
+      with different `generated_at_utc` values are not expected to match.
+- [x] Evaluation artifacts: 943 users, 836 evaluable, 107 skipped.
+- [x] Coverage report: fallback 235/943, empty histories 0, year range
+      [-4.75, 0.61], unit-norm text vectors.
+- [ ] Thành confirmed the evaluation handoff from a clean clone.
+- [ ] Công Thành confirmed the 167-dim feature loaders from a clean clone.
+- [ ] Chúc confirmed the ID mapping and manifest fields for the adapter.
+
+The last three boxes are ticked when each owner replies with their pytest
+count and the complete `Reproducibility fingerprint (cinematch-content-v1)`
+line printed by `create_data_manifest.py`. Manifest schema 1.1 adds this stable
+fingerprint without changing the frozen dataset or feature dimensions.

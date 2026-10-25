@@ -50,11 +50,62 @@ def test_default_data_config_is_valid() -> None:
     assert config.expected_ratings == 100_000
     assert config.expected_users == 943
     assert config.expected_movies == 1_682
+    assert config.dataset_name == "movielens-100k"
+    assert config.data_version == "ml100k-temporal-v1"
+    assert config.feature_contract_version == "hybrid-v1-167"
+    assert config.feature_contract_dimensions == 167
     assert config.train_ratio == pytest.approx(0.8)
     assert config.positive_rating_threshold == 4.0
+    assert config.evaluation_top_k == 10
+    assert config.negative_sample_size == 100
     assert config.paths.train == (
         PROJECT_ROOT / "data" / "processed" / "train.csv"
     )
+    assert config.paths.data_manifest == (
+        PROJECT_ROOT / "outputs" / "data_manifest.json"
+    )
+    assert config.paths.evaluation_handoff_dir == (
+        PROJECT_ROOT / "outputs" / "evaluation"
+    )
+    assert config.paths.movie_numeric_features == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "movie_numeric_features.csv"
+    )
+    assert config.paths.user_genre_profiles == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "user_genre_profiles.csv"
+    )
+    assert config.paths.numeric_feature_preprocessor == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "numeric_feature_preprocessor.json"
+    )
+    assert config.paths.user_pseudo_text == (
+        PROJECT_ROOT / "outputs" / "features" / "user_pseudo_text.csv"
+    )
+    assert config.paths.movie_text == (
+        PROJECT_ROOT / "outputs" / "features" / "movie_text.csv"
+    )
+    assert config.paths.user_text_vectors == (
+        PROJECT_ROOT / "outputs" / "features" / "user_text_vectors.npz"
+    )
+    assert config.paths.movie_text_vectors == (
+        PROJECT_ROOT / "outputs" / "features" / "movie_text_vectors.npz"
+    )
+    assert config.paths.text_feature_preprocessor == (
+        PROJECT_ROOT
+        / "outputs"
+        / "features"
+        / "text_feature_preprocessor.json"
+    )
+    assert config.pseudo_text_language == "en"
+    assert config.pseudo_text_maximum_genres == 3
+    assert config.pseudo_text_minimum_genre_observations == 3
 
 
 def test_invalid_split_ratios_are_rejected(
@@ -87,6 +138,20 @@ def test_output_path_cannot_escape_project_root(
         ConfigurationError,
         match="escapes the project root",
     ):
+        load_data_config(
+            config_path,
+            project_root=tmp_path,
+        )
+
+
+def test_non_positive_evaluation_top_k_is_rejected(
+    tmp_path: Path,
+) -> None:
+    payload = load_default_payload()
+    payload["evaluation"]["top_k"] = 0
+    config_path = write_config(tmp_path, payload)
+
+    with pytest.raises(ConfigurationError, match="top_k must be positive"):
         load_data_config(
             config_path,
             project_root=tmp_path,

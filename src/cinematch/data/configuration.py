@@ -23,6 +23,17 @@ class DataPaths:
     movies_processed: Path
     mappings: Path
     split_audit: Path
+    data_manifest: Path
+    evaluation_handoff_dir: Path
+    movie_numeric_features: Path
+    user_genre_profiles: Path
+    numeric_feature_preprocessor: Path
+    user_pseudo_text: Path
+    movie_text: Path
+    user_text_vectors: Path
+    movie_text_vectors: Path
+    text_feature_preprocessor: Path
+    feature_coverage_report: Path
 
 
 @dataclass(frozen=True)
@@ -30,6 +41,10 @@ class DataPipelineConfig:
     """Typed values required by data preparation and auditing."""
 
     random_seed: int
+    dataset_name: str
+    data_version: str
+    feature_contract_version: str
+    feature_contract_dimensions: int
     expected_ratings: int
     expected_users: int
     expected_movies: int
@@ -38,6 +53,11 @@ class DataPipelineConfig:
     test_ratio: float
     minimum_interactions_per_user: int
     positive_rating_threshold: float
+    evaluation_top_k: int
+    negative_sample_size: int
+    pseudo_text_language: str
+    pseudo_text_maximum_genres: int
+    pseudo_text_minimum_genre_observations: int
     paths: DataPaths
 
 
@@ -65,6 +85,19 @@ def _require_integer(
             f"Configuration key '{key}' must be an integer"
         )
     return value
+
+
+def _require_string(
+    mapping: dict[str, Any],
+    key: str,
+) -> str:
+    """Return a required non-empty string."""
+    value = mapping.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ConfigurationError(
+            f"Configuration key '{key}' must be a non-empty string"
+        )
+    return value.strip()
 
 
 def _require_number(
@@ -142,10 +175,16 @@ def load_data_config(
     data = _require_mapping(payload, "data")
     evaluation = _require_mapping(payload, "evaluation")
     expected = _require_mapping(data, "expected")
+    feature_contract = _require_mapping(
+        data,
+        "feature_contract",
+    )
     raw = _require_mapping(data, "raw")
     processed = _require_mapping(data, "processed")
     split = _require_mapping(data, "temporal_split")
     reports = _require_mapping(data, "reports")
+    features = _require_mapping(data, "features")
+    pseudo_text = _require_mapping(features, "pseudo_text")
 
     expected_ratings = _require_integer(expected, "ratings")
     expected_users = _require_integer(expected, "users")
@@ -217,6 +256,43 @@ def load_data_config(
             "positive_rating_threshold must be within [1, 5]"
         )
 
+    evaluation_top_k = _require_integer(evaluation, "top_k")
+    negative_sample_size = _require_integer(
+        evaluation,
+        "negative_sample_size",
+    )
+    if evaluation_top_k <= 0:
+        raise ConfigurationError("top_k must be positive")
+    if negative_sample_size <= 0:
+        raise ConfigurationError(
+            "negative_sample_size must be positive"
+        )
+
+    pseudo_text_language = _require_string(
+        pseudo_text,
+        "language",
+    )
+    if pseudo_text_language != "en":
+        raise ConfigurationError(
+            "data.features.pseudo_text.language must be 'en'"
+        )
+    pseudo_text_maximum_genres = _require_integer(
+        pseudo_text,
+        "maximum_genres",
+    )
+    if not 1 <= pseudo_text_maximum_genres <= 19:
+        raise ConfigurationError(
+            "pseudo-text maximum_genres must be within [1, 19]"
+        )
+    pseudo_text_minimum_observations = _require_integer(
+        pseudo_text,
+        "minimum_genre_observations",
+    )
+    if pseudo_text_minimum_observations < 1:
+        raise ConfigurationError(
+            "pseudo-text minimum_genre_observations must be at least 1"
+        )
+
     paths = DataPaths(
         ratings_raw=_resolve_project_path(
             root,
@@ -258,10 +334,75 @@ def load_data_config(
             reports.get("split_audit_path"),
             "data.reports.split_audit_path",
         ),
+        data_manifest=_resolve_project_path(
+            root,
+            reports.get("data_manifest_path"),
+            "data.reports.data_manifest_path",
+        ),
+        evaluation_handoff_dir=_resolve_project_path(
+            root,
+            reports.get("evaluation_handoff_dir"),
+            "data.reports.evaluation_handoff_dir",
+        ),
+        movie_numeric_features=_resolve_project_path(
+            root,
+            features.get("movie_numeric_path"),
+            "data.features.movie_numeric_path",
+        ),
+        user_genre_profiles=_resolve_project_path(
+            root,
+            features.get("user_genre_profiles_path"),
+            "data.features.user_genre_profiles_path",
+        ),
+        numeric_feature_preprocessor=_resolve_project_path(
+            root,
+            features.get("numeric_preprocessor_path"),
+            "data.features.numeric_preprocessor_path",
+        ),
+        user_pseudo_text=_resolve_project_path(
+            root,
+            features.get("user_pseudo_text_path"),
+            "data.features.user_pseudo_text_path",
+        ),
+        movie_text=_resolve_project_path(
+            root,
+            features.get("movie_text_path"),
+            "data.features.movie_text_path",
+        ),
+        user_text_vectors=_resolve_project_path(
+            root,
+            features.get("user_text_vectors_path"),
+            "data.features.user_text_vectors_path",
+        ),
+        movie_text_vectors=_resolve_project_path(
+            root,
+            features.get("movie_text_vectors_path"),
+            "data.features.movie_text_vectors_path",
+        ),
+        text_feature_preprocessor=_resolve_project_path(
+            root,
+            features.get("text_preprocessor_path"),
+            "data.features.text_preprocessor_path",
+        ),
+        feature_coverage_report=_resolve_project_path(
+            root,
+            features.get("coverage_report_path"),
+            "data.features.coverage_report_path",
+        ),
     )
 
     return DataPipelineConfig(
         random_seed=_require_integer(project, "random_seed"),
+        dataset_name=_require_string(data, "dataset_name"),
+        data_version=_require_string(data, "version"),
+        feature_contract_version=_require_string(
+            feature_contract,
+            "version",
+        ),
+        feature_contract_dimensions=_require_integer(
+            feature_contract,
+            "total_dimensions",
+        ),
         expected_ratings=expected_ratings,
         expected_users=expected_users,
         expected_movies=expected_movies,
@@ -270,5 +411,12 @@ def load_data_config(
         test_ratio=test_ratio,
         minimum_interactions_per_user=minimum_interactions,
         positive_rating_threshold=positive_threshold,
+        evaluation_top_k=evaluation_top_k,
+        negative_sample_size=negative_sample_size,
+        pseudo_text_language=pseudo_text_language,
+        pseudo_text_maximum_genres=pseudo_text_maximum_genres,
+        pseudo_text_minimum_genre_observations=(
+            pseudo_text_minimum_observations
+        ),
         paths=paths,
     )
