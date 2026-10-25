@@ -1,10 +1,12 @@
 from sqlalchemy import (
+    Boolean,
     Column,
     DateTime,
     Float,
     ForeignKey,
     Integer,
     String,
+    Text,
     UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -20,6 +22,10 @@ class RecommendationRun(Base):
     winner_movie_id = Column(Integer, ForeignKey("movies.id"), nullable=True)
     group_score = Column(Float, nullable=True)
     disagreement = Column(Float, nullable=True)
+    # How the Top-K was produced, kept so a finished run stays explainable.
+    strategy = Column(String, nullable=True)
+    model_name = Column(String, nullable=True)
+    top_k = Column(Integer, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     room = relationship("Room", back_populates="runs")
@@ -39,7 +45,15 @@ class RunItem(Base):
     run_id = Column(Integer, ForeignKey("recommendation_runs.id"), nullable=False)
     movie_id = Column(Integer, ForeignKey("movies.id"), nullable=False)
     rank = Column(Integer, nullable=False)
+    # ai_score holds the aggregated group score of this movie.
     ai_score = Column(Float, nullable=True)
+    minimum_score = Column(Float, nullable=True)
+    disagreement = Column(Float, nullable=True)
+    misery_warning = Column(Boolean, nullable=True)
+    # JSON list of {user_id, display_name, predicted_score}.
+    member_scores_json = Column(Text, nullable=True)
+    # JSON list of human-readable reasons shown next to the movie.
+    explanations_json = Column(Text, nullable=True)
 
     run = relationship("RecommendationRun", back_populates="items")
     movie = relationship("Movie", back_populates="run_items")

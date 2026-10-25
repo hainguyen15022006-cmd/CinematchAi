@@ -48,9 +48,10 @@ def tally_votes_and_get_winner(
 
     run.winner_movie_id = winner_item.movie_id
     run.status = "FINISHED"
+    # Keep the winner's own group numbers on the run so the result screen
+    # can show how the group scored the chosen movie.
     run.group_score = winner_item.ai_score
-    # The database mock has no per-member predictions to calculate disagreement.
-    run.disagreement = None
+    run.disagreement = winner_item.disagreement
     run.room.status = "FINISHED"
     db.commit()
     db.refresh(run)

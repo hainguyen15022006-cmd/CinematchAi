@@ -1,15 +1,23 @@
+import json
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.db import get_db
 from app.core.security import get_current_user
 from app.models.movie import Movie
 from app.models.recommendation import RecommendationRun, RunItem, Vote
 from app.models.room import RoomMember
 from app.models.user import User
-from app.schemas.run import RunItemOut, RunResultOut, VoteCreate, VoteOut
+from app.schemas.run import (
+    GroupRecommendationOut,
+    RunItemOut,
+    RunResultOut,
+    VoteCreate,
+    VoteOut,
+)
 from app.services.tally_service import tally_votes_and_get_winner
 
 router = APIRouter(prefix="/runs", tags=["Runs & Voting"])
@@ -52,6 +60,75 @@ def get_run_items(
     if not items:
         raise HTTPException(status_code=404, detail="Run items not found")
     return items
+
+
+@router.get("/{id}/recommendations", response_model=GroupRecommendationOut)
+def get_run_recommendations(
+    id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return the stored Top-K of a run in the shared Frontend contract."""
+    run = _get_run_for_member(id, current_user.id, db)
+    items = (
+        db.query(RunItem)
+        .filter(RunItem.run_id == id)
+        .order_by(RunItem.rank)
+        .all()
+    )
+    if not items:
+        raise HTTPException(status_code=404, detail="Run items not found")
+    if any(item.ai_score is None for item in items):
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "This run has no stored group scores. Start a new "
+                "recommendation run for this room."
+            ),
+        )
+
+    recommendations = []
+    for item in items:
+        movie = item.movie
+        recommendations.append(
+            {
+                "movie_id": movie.movielens_id,
+                "rank": item.rank,
+                "title": movie.title,
+                "genres": [
+                    genre
+                    for genre in (movie.genres or "").split("|")
+                    if genre
+                ],
+                "poster_url": None,
+                "runtime_minutes": None,
+                "group_score": item.ai_score,
+                "minimum_score": (
+                    item.minimum_score
+                    if item.minimum_score is not None
+                    else item.ai_score
+                ),
+                "disagreement": (
+                    item.disagreement
+                    if item.disagreement is not None
+                    else 0.0
+                ),
+                "member_scores": json.loads(
+                    item.member_scores_json or "[]"
+                ),
+                "misery_warning": bool(item.misery_warning),
+                "explanations": json.loads(item.explanations_json or "[]"),
+            }
+        )
+
+    return GroupRecommendationOut.model_validate(
+        {
+            "schema_version": "1.0",
+            "room_id": run.room_id,
+            "strategy": run.strategy or settings.RECOMMENDER_STRATEGY,
+            "recommendations": recommendations,
+        }
+    )
 
 
 @router.post("/{id}/votes", response_model=VoteOut, status_code=201)

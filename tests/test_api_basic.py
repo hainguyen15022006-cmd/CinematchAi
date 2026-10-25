@@ -266,8 +266,8 @@ def test_room_rejects_sixth_member() -> None:
 
 
 def test_room_ready_recommend_and_single_vote_flow() -> None:
-    _, host_token = register_and_login("host@example.com")
-    _, member_token = register_and_login("member@example.com")
+    host_id, host_token = register_and_login("host@example.com")
+    member_id, member_token = register_and_login("member@example.com")
     host_headers = authorization(host_token)
     member_headers = authorization(member_token)
 
@@ -298,14 +298,37 @@ def test_room_ready_recommend_and_single_vote_flow() -> None:
         f"/rooms/{room['id']}/ready", headers=member_headers
     ).status_code == 200
 
+    # Real scoring needs an onboarding profile per member, and a movie
+    # somebody already rated is dropped from the candidates.
+    assert client.post(
+        "/ratings",
+        json={"movie_id": 1, "rating": 5},
+        headers=host_headers,
+    ).status_code == 201
+    assert client.post(
+        "/ratings",
+        json={"movie_id": 1, "rating": 4},
+        headers=member_headers,
+    ).status_code == 201
+
     recommendation = client.post(
         f"/rooms/{room['id']}/recommend",
         headers=host_headers,
     )
     assert recommendation.status_code == 201
     run = recommendation.json()
-    assert len(run["items"]) == 3
-    assert {item["movie_id"] for item in run["items"]} == {1, 50, 181}
+    assert run["strategy"] == "average"
+    assert run["model_name"] == "mf"
+    assert {item["movie_id"] for item in run["items"]} == {50, 181}
+    assert [item["rank"] for item in run["items"]] == [1, 2]
+    for item in run["items"]:
+        assert 1.0 <= item["ai_score"] <= 5.0
+        assert {score["user_id"] for score in item["member_scores"]} == {
+            host_id,
+            member_id,
+        }
+        assert item["explanations"]
+
     items = client.get(
         f"/runs/{run['id']}/items",
         headers=member_headers,
@@ -313,19 +336,35 @@ def test_room_ready_recommend_and_single_vote_flow() -> None:
     assert items.status_code == 200
     assert items.json() == run["items"]
 
-    first_vote = client.post(
-        f"/runs/{run['id']}/votes",
-        json={"movie_id": 1},
+    contract = client.get(
+        f"/runs/{run['id']}/recommendations",
         headers=member_headers,
     )
-    changed_vote = client.post(
+    assert contract.status_code == 200
+    payload = contract.json()
+    assert payload["strategy"] == "average"
+    assert payload["room_id"] == room["id"]
+    assert [movie["rank"] for movie in payload["recommendations"]] == [1, 2]
+
+    first_vote = client.post(
         f"/runs/{run['id']}/votes",
         json={"movie_id": 50},
         headers=member_headers,
     )
+    changed_vote = client.post(
+        f"/runs/{run['id']}/votes",
+        json={"movie_id": 181},
+        headers=member_headers,
+    )
+    rejected_vote = client.post(
+        f"/runs/{run['id']}/votes",
+        json={"movie_id": 1},
+        headers=member_headers,
+    )
     assert first_vote.status_code == 201
     assert changed_vote.status_code == 201
-    assert changed_vote.json()["movie_id"] == 50
+    assert changed_vote.json()["movie_id"] == 181
+    assert rejected_vote.status_code == 400
     with TestingSessionLocal() as db:
         assert db.query(Vote).count() == 1
 
@@ -346,8 +385,9 @@ def test_room_ready_recommend_and_single_vote_flow() -> None:
         headers=host_headers,
     )
     assert finalized.status_code == 200
-    assert finalized.json()["winner_movie"]["movielens_id"] == 50
-    assert finalized.json()["disagreement"] is None
+    assert finalized.json()["winner_movie"]["movielens_id"] == 181
+    assert finalized.json()["group_score"] is not None
+    assert finalized.json()["disagreement"] >= 0
 
     member_result = client.get(
         f"/runs/{run['id']}/result",
@@ -358,7 +398,7 @@ def test_room_ready_recommend_and_single_vote_flow() -> None:
 
     vote_after_finish = client.post(
         f"/runs/{run['id']}/votes",
-        json={"movie_id": 1},
+        json={"movie_id": 50},
         headers=member_headers,
     )
     assert vote_after_finish.status_code == 409

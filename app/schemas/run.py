@@ -1,8 +1,16 @@
+import json
 from enum import Enum
 from datetime import datetime
-from typing import List, Optional
+from typing import Any, List, Optional
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from pydantic import (
+    AliasChoices,
+    AliasPath,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+)
 
 from app.schemas.movie import MovieOut
 from app.schemas.user import UserOut
@@ -32,7 +40,24 @@ class MemberScore(BaseModel):
     predicted_score: float = Field(ge=1, le=5)
 
 
+def _parse_json_list(value: Any) -> Any:
+    """Accept either a stored JSON string or an already parsed list."""
+    if value is None:
+        return []
+    if isinstance(value, str):
+        if not value.strip():
+            return []
+        try:
+            parsed = json.loads(value)
+        except ValueError:
+            return []
+        return parsed if isinstance(parsed, list) else []
+    return value
+
+
 class RunItemOut(BaseModel):
+    """One ranked movie of a run, including its group fairness numbers."""
+
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -44,8 +69,31 @@ class RunItemOut(BaseModel):
         )
     )
     rank: int
+    # ai_score is the aggregated group score of this movie.
     ai_score: Optional[float] = None
+    minimum_score: Optional[float] = None
+    disagreement: Optional[float] = None
+    misery_warning: Optional[bool] = None
+    member_scores: List[MemberScore] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices(
+            "member_scores",
+            "member_scores_json",
+        ),
+    )
+    explanations: List[str] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices(
+            "explanations",
+            "explanations_json",
+        ),
+    )
     movie: Optional[MovieOut] = None
+
+    @field_validator("member_scores", "explanations", mode="before")
+    @classmethod
+    def _load_json_columns(cls, value: Any) -> Any:
+        return _parse_json_list(value)
 
 class RecommendationRunOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -54,6 +102,8 @@ class RecommendationRunOut(BaseModel):
     room_id: int
     status: str
     created_at: datetime
+    strategy: Optional[AggregationStrategy] = None
+    model_name: Optional[str] = None
     items: List[RunItemOut] = Field(default_factory=list)
 
 class VoteCreate(BaseModel):

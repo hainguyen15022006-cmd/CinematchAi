@@ -23,7 +23,7 @@ data/processed/*
 *.tar.gz
 
 # Models, Artifacts & Logs
-artifacts/
+artifacts/*
 checkpoints/
 outputs/
 *.onnx
@@ -62,3 +62,15 @@ Thumbs.db
 # Local AI agent skills and design tooling (not part of the project)
 .agents/
 design-system/
+
+# Serving bundle (committed on purpose)
+# The Backend cannot score a group without a checkpoint, the train-only
+# ratings, the ID mapping and the movie catalog, and a deployment must not
+# run the data pipeline. The bundle is under 1 MB and is rebuilt with
+# python scripts/build_serving_bundle.py. These rules come last so they
+# override the broad artifacts/, *.pt and *.csv rules above.
+!artifacts/serving/
+!artifacts/serving/mf_checkpoint.pt
+!artifacts/serving/train_ratings.csv.gz
+!artifacts/serving/movies.csv.gz
+!artifacts/serving/id_mappings.json
