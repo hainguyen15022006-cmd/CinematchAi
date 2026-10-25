@@ -82,5 +82,61 @@ export interface Room {
   status: string
   constraints?: string | null
   created_at: string
+  latest_run_id?: number | null
   members: RoomMember[]
+}
+
+/** Room settings the host picks before starting a run. */
+export interface RoomConstraints {
+  strategy?: AggregationStrategy
+  top_k?: number
+  misery_threshold?: number
+}
+
+export interface RunItem {
+  id: number
+  run_id: number
+  movie_id: number
+  rank: number
+  ai_score?: number | null
+  minimum_score?: number | null
+  disagreement?: number | null
+  misery_warning?: boolean | null
+  member_scores: MemberScore[]
+  explanations: string[]
+  movie?: Movie | null
+}
+
+export interface RecommendationRun {
+  id: number
+  room_id: number
+  status: string
+  created_at: string
+  strategy?: AggregationStrategy | null
+  model_name?: string | null
+  items: RunItem[]
+}
+
+export interface Vote {
+  id: number
+  run_id: number
+  user_id: number
+  movie_id: number
+  vote_value: number
+  created_at: string
+  user?: User | null
+}
+
+export interface RunResult {
+  run_id: number
+  winner_movie?: Movie | null
+  group_score?: number | null
+  disagreement?: number | null
+  votes: Vote[]
+}
+
+export interface RecommenderStatus {
+  available: boolean
+  model?: string | null
+  detail: string
 }

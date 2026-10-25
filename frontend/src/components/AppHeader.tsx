@@ -19,7 +19,7 @@ export function AppHeader() {
       <nav className="main-nav" aria-label="Main navigation">
         {loggedIn && <NavLink to="/onboarding">Rate movies</NavLink>}
         {loggedIn && <NavLink to="/room">Group room</NavLink>}
-        <NavLink to="/recommendations">Top 10</NavLink>
+        <NavLink to="/recommendations">Contract demo</NavLink>
         {loggedIn ? (
           <button className="text-button" onClick={logout}>Sign out</button>
         ) : (

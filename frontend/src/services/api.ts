@@ -4,10 +4,16 @@ import type {
   Movie,
   Rating,
   RecommendationResponse,
+  RecommendationRun,
+  RecommenderStatus,
   Room,
+  RoomConstraints,
   RoomMember,
+  RunItem,
+  RunResult,
   User,
   UserProfile,
+  Vote,
 } from '../types'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
@@ -103,11 +109,19 @@ export const api = {
 
   myRatings: () => request<Rating[]>('/ratings', {}, true),
 
-  recommendations: (room_id: number, strategy: AggregationStrategy, top_k = 10) =>
+  /** Week-one demo endpoint with fixed data; needs no sign-in. */
+  mockRecommendations: (
+    room_id: number,
+    strategy: AggregationStrategy,
+    top_k = 10,
+  ) =>
     request<RecommendationResponse>('/recommend/mock', {
       method: 'POST',
       body: JSON.stringify({ room_id, strategy, top_k }),
     }),
+
+  /** Tells whether the Backend can score with the trained model. */
+  recommenderStatus: () => request<RecommenderStatus>('/recommend/status'),
 
   createRoom: (name?: string) =>
     request<Room>(
@@ -123,6 +137,50 @@ export const api = {
 
   toggleReady: (roomId: number) =>
     request<RoomMember>(`/rooms/${roomId}/ready`, { method: 'POST' }, true),
+
+  /** Host-only: store the strategy and Top-K used by the next run. */
+  updateRoomConstraints: (roomId: number, constraints: RoomConstraints) =>
+    request<Room>(
+      `/rooms/${roomId}/constraints`,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ constraints: JSON.stringify(constraints) }),
+      },
+      true,
+    ),
+
+  /** Host-only: score every member and open voting. */
+  triggerRecommendation: (roomId: number) =>
+    request<RecommendationRun>(
+      `/rooms/${roomId}/recommend`,
+      { method: 'POST' },
+      true,
+    ),
+
+  runItems: (runId: number) =>
+    request<RunItem[]>(`/runs/${runId}/items`, {}, true),
+
+  /** The stored Top-K of a run, in the shared recommendation contract. */
+  runRecommendations: (runId: number) =>
+    request<RecommendationResponse>(
+      `/runs/${runId}/recommendations`,
+      {},
+      true,
+    ),
+
+  castVote: (runId: number, movie_id: number, vote_value = 1) =>
+    request<Vote>(
+      `/runs/${runId}/votes`,
+      { method: 'POST', body: JSON.stringify({ movie_id, vote_value }) },
+      true,
+    ),
+
+  /** Host-only: close voting and pick the winner. */
+  finalizeRun: (runId: number) =>
+    request<RunResult>(`/runs/${runId}/finalize`, { method: 'POST' }, true),
+
+  runResult: (runId: number) =>
+    request<RunResult>(`/runs/${runId}/result`, {}, true),
 }
 
 export { API_BASE_URL }

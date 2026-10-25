@@ -29,6 +29,7 @@ class RoomOut(BaseModel):
     status: str
     constraints: Optional[str] = None
     created_at: datetime
+    latest_run_id: Optional[int] = None
     members: List[RoomMemberOut] = Field(default_factory=list)
 
 

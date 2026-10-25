@@ -22,7 +22,7 @@ export function RecommendationsPage() {
     setError('')
     setLoading(true)
     try {
-      setResult(await api.recommendations(roomId, strategy, 10))
+      setResult(await api.mockRecommendations(roomId, strategy, 10))
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not load recommendations.')
     } finally {
@@ -33,7 +33,7 @@ export function RecommendationsPage() {
   return (
     <main className="page wide-page">
       <section className="page-heading recommendation-heading">
-        <div><p className="eyebrow">GROUP RECOMMENDATION · CONTRACT V1</p><h1>Top 10 for the whole group</h1><p className="muted">Week 1 mock endpoint. No sign-in required; follows the agreed schema.</p></div>
+        <div><p className="eyebrow">GROUP RECOMMENDATION · CONTRACT V1</p><h1>Top 10 for the whole group</h1><p className="muted">Contract demo with fixed data. For a real group result, open a room and start a run.</p></div>
         <form className="recommend-control" onSubmit={load}>
           <label>Room ID<input type="number" min="1" value={roomId} onChange={(e) => setRoomId(Math.max(1, Number(e.target.value)))} /></label>
           <label>Strategy<select value={strategy} onChange={(e) => setStrategy(e.target.value as AggregationStrategy)}><option value="average">Average</option><option value="least_misery">Least Misery</option><option value="average_without_misery">Average Without Misery</option></select></label>

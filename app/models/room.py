@@ -27,6 +27,17 @@ class Room(Base):
     members = relationship("RoomMember", back_populates="room")
     runs = relationship("RecommendationRun", back_populates="room")
 
+    @property
+    def latest_run_id(self) -> int | None:
+        """ID of the newest recommendation run, or None before the first.
+
+        Members other than the host never see the response that created a
+        run, so the room itself has to point at it.
+        """
+        if not self.runs:
+            return None
+        return max(run.id for run in self.runs)
+
 
 class RoomMember(Base):
     __tablename__ = "room_members"

@@ -8,6 +8,7 @@ import { OnboardingPage } from './pages/OnboardingPage'
 import { RecommendationsPage } from './pages/RecommendationsPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { RoomPage } from './pages/RoomPage'
+import { RunPage } from './pages/RunPage'
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/recommendations" element={<RecommendationsPage />} />
         <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
         <Route path="/room" element={<ProtectedRoute><RoomPage /></ProtectedRoute>} />
+        <Route path="/rooms/:code/runs/:runId" element={<ProtectedRoute><RunPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

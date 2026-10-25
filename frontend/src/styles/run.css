@@ -1,0 +1,193 @@
+/* Voting and result screens. Colors come from the tokens in index.css. */
+
+.run-page {
+  display: grid;
+  gap: 24px;
+}
+
+.run-heading {
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.run-heading .waiting-note {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  max-width: 260px;
+}
+
+.result-card {
+  display: grid;
+  gap: 20px;
+  padding: 24px;
+  border: 1px solid var(--accent);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(139, 92, 246, 0.22), transparent 55%),
+    var(--panel);
+}
+
+.winner-block h2 {
+  margin: 8px 0 4px;
+  font-size: 1.6rem;
+}
+
+.winner-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #0b0710;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.result-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin: 0;
+}
+
+.result-numbers dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.result-numbers dd {
+  margin: 4px 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.result-card .button {
+  justify-self: start;
+}
+
+.vote-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+}
+
+.vote-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.vote-card:hover {
+  transform: translateY(-2px);
+}
+
+.vote-card.mine {
+  border-color: var(--accent);
+}
+
+.vote-card.winner {
+  border-color: var(--success);
+  box-shadow: 0 0 0 1px rgba(74, 222, 128, 0.35);
+}
+
+.vote-card header {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 12px;
+}
+
+.vote-card header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.vote-card header p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.vote-card .warning-badge {
+  grid-column: 1 / -1;
+}
+
+.score-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.score-row span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.score-row strong {
+  font-size: 1.1rem;
+}
+
+.member-predictions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.member-predictions li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  font-size: 0.82rem;
+}
+
+.member-predictions span {
+  color: var(--muted);
+}
+
+.vote-card footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.vote-card footer .button {
+  width: 100%;
+}
+
+.vote-count {
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .run-heading .waiting-note {
+    max-width: none;
+  }
+
+  .vote-grid {
+    grid-template-columns: 1fr;
+  }
+}
